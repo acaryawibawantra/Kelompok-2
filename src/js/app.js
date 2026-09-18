@@ -115,6 +115,7 @@ function renderTasks() {
     deleteBtn.addEventListener("click", () => deleteTask(task.id));
 
     li.appendChild(span);
+    li.appendChild(editBtn);
     li.appendChild(deleteBtn);
     taskList.appendChild(li);
   });

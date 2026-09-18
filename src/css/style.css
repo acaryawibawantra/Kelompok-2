@@ -118,7 +118,7 @@ h1 {
   Tambahkan style untuk mode edit, misalnya input text yang muncul
   menggantikan <span> saat task sedang diedit.
 */
-task-item .edit-btn {
+.task-item .edit-btn {
   border: none;
   background: transparent;
   color: #4f46e5;
