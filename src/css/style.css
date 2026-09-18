@@ -118,6 +118,29 @@ h1 {
   Tambahkan style untuk mode edit, misalnya input text yang muncul
   menggantikan <span> saat task sedang diedit.
 */
+.task-item .edit-btn {
+  border: none;
+  background: transparent;
+  color: #4f46e5;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+}
+
+.task-item .edit-btn:hover {
+  color: #3730a3;
+}
+
+.task-item .edit-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #4f46e5;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+}
 
 /*
   TODO (Fitur #5 & #6 - Counter & Clear Completed):
