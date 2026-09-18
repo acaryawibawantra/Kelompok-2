@@ -14,13 +14,35 @@ const taskList = document.getElementById("task-list");
 let tasks = [];
 let nextId = 1;
 
-// TODO (Fitur #4 - Simpan ke localStorage):
-// Saat aplikasi pertama kali dibuka, load "tasks" dari localStorage
-// (kalau ada) sebelum renderTasks() dipanggil pertama kali di bawah.
-// Hint: gunakan JSON.parse(localStorage.getItem("tasks")) dan cek
-// null-nya sebelum dipakai.
+// Key penyimpanan data task di localStorage (Fitur #4)
+const STORAGE_KEY = "tasks";
+
+// Fitur #4: muat data task tersimpan dari localStorage saat aplikasi dibuka.
+// Kalau belum ada data (null) atau datanya korup, mulai dengan list kosong.
+function loadTasks() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (Array.isArray(stored)) {
+      tasks = stored;
+    }
+  } catch {
+    // Data korup diabaikan, mulai dengan list kosong
+  }
+
+  // Hitung ulang nextId agar id task baru tidak bertabrakan dengan task lama
+  nextId = Math.max(0, ...tasks.map((task) => task.id)) + 1;
+}
+
+// Fitur #4: simpan seluruh data task ke localStorage.
+function saveTasks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
 
 function renderTasks() {
+  // Fitur #4: simpan ke localStorage paling awal, supaya tetap
+  // tereksekusi meskipun masuk cabang list kosong (early return).
+  saveTasks();
+
   taskList.innerHTML = "";
 
   if (tasks.length === 0) {
@@ -65,11 +87,6 @@ function renderTasks() {
   // TODO (Fitur #5 - Counter):
   // Update elemen #task-counter di sini setiap kali renderTasks() dipanggil,
   // isinya jumlah task yang belum selesai. Contoh: "3 task tersisa".
-
-  // TODO (Fitur #4 - Simpan ke localStorage):
-  // Setiap kali renderTasks() dipanggil, data "tasks" sudah berubah,
-  // jadi ini tempat yang pas untuk menyimpan ulang ke localStorage.
-  // Hint: localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 function addTask(text) {
@@ -116,4 +133,7 @@ taskForm.addEventListener("submit", (event) => {
   taskInput.focus();
 });
 
+// Fitur #4: muat data tersimpan dulu sebelum render pertama,
+// supaya task lama muncul saat halaman dibuka/refresh.
+loadTasks();
 renderTasks();
