@@ -62,6 +62,23 @@ h1 {
   Tambahkan style untuk .filters dan .filter-btn di sini.
   Tandai tombol filter yang sedang aktif, misalnya dengan class ".active".
 */
+.filters{
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background-color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.filter-btn.active {
+  font-weight: bold;
+}
 
 .task-list {
   list-style: none;

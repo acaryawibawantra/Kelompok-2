@@ -13,6 +13,7 @@ const taskList = document.getElementById("task-list");
 // dipakai di mana pun. Itu tugas kamu di Fitur #1.
 let tasks = [];
 let nextId = 1;
+let currentFilter = "all";
 
 // Key penyimpanan data task di localStorage (Fitur #4)
 const STORAGE_KEY = "tasks";
@@ -56,7 +57,15 @@ function renderTasks() {
   // TODO (Fitur #3 - Filter Task):
   // Sebelum di-loop, filter dulu "tasks" sesuai filter aktif
   // (semua / aktif / selesai). Sekarang semua task selalu ditampilkan.
-  tasks.forEach((task) => {
+  let filteredTasks = tasks;
+
+  if (currentFilter === "active") {
+    filteredTasks = tasks.filter((task) => task.completed === false);
+  } else if (currentFilter === "completed") {
+    filteredTasks = tasks.filter((task) => task.completed === true);
+  }
+
+  filteredTasks.forEach((task) => {
     const li = document.createElement("li");
     li.className = "task-item";
     li.dataset.id = task.id;
@@ -177,6 +186,21 @@ function deleteTask(id) {
 // `let currentFilter = "all";`, lalu tambahkan event listener untuk
 // setiap .filter-btn yang mengubah currentFilter dan memanggil
 // renderTasks() ulang.
+const filterButtons = document.querySelectorAll(".filter-btn");
+
+filterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    currentFilter = button.dataset.filter;
+
+    filterButtons.forEach((btn) => {
+      btn.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+    renderTasks();
+  });
+});
 
 taskForm.addEventListener("submit", (event) => {
   event.preventDefault();
