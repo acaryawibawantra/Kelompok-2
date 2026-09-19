@@ -120,9 +120,15 @@ function renderTasks() {
     taskList.appendChild(li);
   });
 
-  // TODO (Fitur #5 - Counter):
-  // Update elemen #task-counter di sini setiap kali renderTasks() dipanggil,
-  // isinya jumlah task yang belum selesai. Contoh: "3 task tersisa".
+    const taskCounter = document.getElementById("task-counter");
+
+    if (taskCounter) {
+        const remainingTasks = tasks.filter(
+            (task) => task.completed === false
+        ).length;
+
+        taskCounter.textContent = `${remainingTasks} task tersisa`;
+    }
 }
 
 function addTask(text) {
