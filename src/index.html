@@ -64,7 +64,7 @@
 
       <div class="sidebar-footer">
         <div class="sidebar-divider"></div>
-        <button class="sidebar-item" title="Segera hadir">⚙ Settings</button>
+        <button id="settings-btn" class="sidebar-item">⚙ Settings</button>
       </div>
     </aside>
 
@@ -150,6 +150,39 @@
       <div class="modal-actions">
         <button id="modal-cancel" class="btn-ghost">Batal</button>
         <button id="modal-save" class="btn-primary">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL SETTINGS ==================== -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>Settings</h2>
+
+      <div class="settings-group">
+        <div class="settings-label">Gaya Font Judul</div>
+        <button class="font-option active" data-font="default">
+          <span>Handwritten (default)</span>
+          <span class="font-sample font-sample-hand">My Space · KULIAH</span>
+        </button>
+        <button class="font-option" data-font="clean">
+          <span>Bersih &amp; Modern</span>
+          <span class="font-sample font-sample-clean">My Space · KULIAH</span>
+        </button>
+        <button class="font-option" data-font="serif">
+          <span>Klasik Serif</span>
+          <span class="font-sample font-sample-serif">My Space · KULIAH</span>
+        </button>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-label">Aplikasi</div>
+        <button id="install-btn" class="btn-primary settings-install hidden">📲 Install App</button>
+        <p id="install-hint" class="settings-hint"></p>
+      </div>
+
+      <div class="modal-actions">
+        <button id="settings-close" class="btn-ghost">Tutup</button>
       </div>
     </div>
   </div>

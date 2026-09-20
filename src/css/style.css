@@ -30,6 +30,16 @@ body[data-theme="dark"] {
   --dot-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Settings: tema font judul (Handwritten / Bersih / Serif).
+   Mengubah --font-hand yang dipakai brand, judul halaman, dan nama kartu. */
+body[data-font="clean"] {
+  --font-hand: var(--font-body);
+}
+
+body[data-font="serif"] {
+  --font-hand: Georgia, "Times New Roman", serif;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -964,6 +974,82 @@ body.drawer-open {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* ==================== Modal Settings ==================== */
+
+.settings-group {
+  margin-bottom: 18px;
+}
+
+.settings-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.font-option {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.font-option:hover {
+  border-color: var(--primary);
+}
+
+.font-option.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* Preview tiap pilihan pakai font baku masing-masing,
+   tidak ikut berubah saat tema font aktif diganti */
+.font-sample {
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+.font-sample-hand {
+  font-family: "Bradley Hand", "Segoe Script", "Chalkboard SE", "Comic Sans MS", cursive;
+}
+
+.font-sample-clean {
+  font-family: var(--font-body);
+}
+
+.font-sample-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.settings-install {
+  width: 100%;
+}
+
+.settings-install.hidden {
+  display: none;
+}
+
+.settings-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 8px 0 0;
 }
 
 /* ==================== Backdrop & mobile ==================== */
