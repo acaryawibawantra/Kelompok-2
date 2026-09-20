@@ -129,6 +129,11 @@ h1 {
   pada .task-item yang membuat teksnya dicoret (text-decoration: line-through)
   dan warnanya lebih pudar.
 */
+.completed span {
+  text-decoration: line-through;
+  color: #9ca3af;
+  opacity: 0.5;
+}
 
 /*
   TODO (Fitur #2 - Edit Task):
