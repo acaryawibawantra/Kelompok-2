@@ -164,15 +164,32 @@ h1 {
   font-family: inherit;
 }
 
-/*
-  TODO (Fitur #5 & #6 - Counter & Clear Completed):
-  Tambahkan style untuk .footer yang berisi counter task dan tombol
-  "Hapus yang Selesai".
-*/
-
 .footer {
     margin-top: 16px;
     text-align: center;
     color: #6b7280;
     font-size: 0.9rem;
+}
+
+/* Fitur #6: tombol hapus semua task yang sudah selesai */
+#clear-completed {
+    display: block;
+    margin: 8px auto 0;
+    padding: 8px 16px;
+    border: 1px solid #ef4444;
+    background: transparent;
+    color: #ef4444;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+#clear-completed:hover:not(:disabled) {
+    background: #fef2f2;
+}
+
+#clear-completed:disabled {
+    border-color: #e5e7eb;
+    color: #d1d5db;
+    cursor: default;
 }
