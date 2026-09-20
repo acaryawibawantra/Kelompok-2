@@ -113,12 +113,18 @@ function saveTasks() {
   saveProjects();
 }
 
-// tanggal hari ini dalam format YYYY-MM-DD 
+// Bonus: tanggal hari ini dalam format YYYY-MM-DD (tanpa timezone UTC).
 function getTodayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Streak: tanggal kemarin dalam format YYYY-MM-DD.
+function getYesterdayStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 // Bonus: format due date menjadi "20 Sep".
 function formatDueDate(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
@@ -333,6 +339,10 @@ function toggleComplete(id) {
   const task = tasks.find((task) => task.id === id);
   if (task) {
     task.completed = !task.completed;
+    // Streak: task yang baru dicentang menyalakan api hari ini
+    if (task.completed) recordStreakCompletion();
+    // Aktivitas: hitung task selesai hari ini untuk heatmap
+    recordActivity(task.completed ? 1 : -1);
     renderTasks();
   }
 }
@@ -501,6 +511,9 @@ function makeCardActionBtn(label, title, onClick, extraClass) {
 }
 
 function renderSpace() {
+  // Heatmap aktivitas selalu disegarkan saat membuka My Space
+  renderActivityHeatmap();
+
   const grid = document.getElementById("project-grid");
   grid.innerHTML = "";
 
@@ -1095,6 +1108,175 @@ if (themeToggleBtn) {
 }
 
 // ============================================================
+// Streak: selesaikan minimal 1 task per hari agar api menyala
+// ============================================================
+
+const STREAK_KEY = "taskcanvas-streak";
+let streak = { count: 0, lastDate: null };
+
+// Muat streak tersimpan; kalau terakhir selesai sebelum kemarin,
+// streak dianggap putus (api padam).
+function loadStreak() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STREAK_KEY));
+    if (stored && typeof stored.count === "number") {
+      streak = stored;
+    }
+  } catch {
+    streak = { count: 0, lastDate: null };
+  }
+
+  if (streak.lastDate && streak.lastDate < getYesterdayStr()) {
+    streak = { count: 0, lastDate: streak.lastDate };
+    localStorage.setItem(STREAK_KEY, JSON.stringify(streak));
+  }
+
+  renderStreak();
+}
+
+// Dipanggil setiap kali sebuah task diselesaikan (dicentang).
+function recordStreakCompletion() {
+  const today = getTodayStr();
+  if (streak.lastDate === today) return; // hari ini sudah tercatat
+
+  streak.count = streak.lastDate === getYesterdayStr() ? streak.count + 1 : 1;
+  streak.lastDate = today;
+  localStorage.setItem(STREAK_KEY, JSON.stringify(streak));
+  renderStreak();
+}
+
+// Tampilkan badge: api merah bila task hari ini sudah selesai.
+function renderStreak() {
+  const badge = document.getElementById("streak-badge");
+  const flame = document.getElementById("streak-flame");
+  const count = document.getElementById("streak-count");
+  if (!badge || !flame || !count) return;
+
+  const active = streak.count > 0 && streak.lastDate === getTodayStr();
+
+  flame.src = active ? "icons/flame-active.svg" : "icons/flame.svg";
+  count.textContent = streak.count;
+  badge.classList.toggle("active", active);
+  badge.title = active
+    ? `Streak ${streak.count} hari menyala! Tetap lanjutkan besok.`
+    : streak.count > 0
+      ? `Streak ${streak.count} hari — selesaikan 1 task hari ini agar api tetap menyala.`
+      : "Selesaikan minimal 1 task setiap hari agar api menyala.";
+}
+
+// ============================================================
+// Aktivitas: heatmap konsistensi ala GitHub contributions
+// ============================================================
+
+const ACTIVITY_KEY = "taskcanvas-activity";
+// Bentuk: { "2026-09-20": 3, ... } — jumlah task selesai per hari
+let activityLog = {};
+
+function loadActivity() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(ACTIVITY_KEY));
+    if (stored && typeof stored === "object") activityLog = stored;
+  } catch {
+    activityLog = {};
+  }
+}
+
+function saveActivity() {
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLog));
+}
+
+// Catat penyelesaian task hari ini (+1 saat dicentang, -1 saat dibatalkan).
+function recordActivity(delta) {
+  const today = getTodayStr();
+  const next = Math.max(0, (activityLog[today] || 0) + delta);
+  if (next === 0) {
+    delete activityLog[today];
+  } else {
+    activityLog[today] = next;
+  }
+  saveActivity();
+  renderActivityHeatmap();
+}
+
+// Level intensitas hijau (0-4) dari jumlah task selesai hari itu.
+function getActivityLevel(count) {
+  if (!count || count <= 0) return 0;
+  if (count === 1) return 1;
+  if (count <= 3) return 2;
+  if (count <= 5) return 3;
+  return 4;
+}
+
+// Render heatmap 26 minggu berakhir hari ini: kolom = minggu,
+// baris = hari mulai Minggu + label bulan di bawahnya.
+// Tanggal masa depan dirender sebagai sel kosong agar grid tetap rapi.
+function renderActivityHeatmap() {
+  const grid = document.getElementById("activity-heatmap");
+  if (!grid) return;
+
+  grid.innerHTML = "";
+
+  const WEEKS = 26;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yearTitle = document.getElementById("activity-year");
+  if (yearTitle) yearTitle.textContent = today.getFullYear();
+
+  // Mundur ke hari Minggu di minggu (WEEKS-1) sebelum minggu ini
+  const start = new Date(today);
+  start.setDate(start.getDate() - start.getDay() - (WEEKS - 1) * 7);
+
+  const todayStr = getTodayStr();
+  let total = 0;
+
+  for (let week = 0; week < WEEKS; week++) {
+    let monthLabel = "";
+
+    for (let day = 0; day < 7; day++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + week * 7 + day);
+
+      if (date > today) {
+        const spacer = document.createElement("div");
+        spacer.className = "heat empty";
+        grid.appendChild(spacer);
+        continue;
+      }
+
+      // Kolom yang memuat tanggal 1 diberi label bulan
+      if (date.getDate() === 1 && !monthLabel) {
+        monthLabel = date.toLocaleDateString("id-ID", { month: "short" });
+      }
+
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      const count = activityLog[dateStr] || 0;
+      total += count;
+
+      const cell = document.createElement("div");
+      cell.className = "heat lvl-" + getActivityLevel(count);
+      if (dateStr === todayStr) cell.classList.add("today");
+      cell.title =
+        `${date.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" })} — ${count} task diselesaikan`;
+      grid.appendChild(cell);
+    }
+
+    const label = document.createElement("span");
+    label.className = "heat-month";
+    label.textContent = monthLabel;
+    grid.appendChild(label);
+  }
+
+  const summary = document.getElementById("activity-summary");
+  if (summary) {
+    summary.textContent =
+      total > 0
+        ? `${total} task diselesaikan`
+        : "Belum ada aktivitas — centang task untuk mulai mengisi heatmap";
+  }
+}
+
+// ============================================================
 // Settings: ganti gaya font judul + tombol install aplikasi
 // ============================================================
 
@@ -1195,6 +1377,12 @@ applyTheme(localStorage.getItem(THEME_KEY) || "light");
 
 // Settings: terapkan tema font tersimpan (default handwritten)
 applyFont(localStorage.getItem(FONT_KEY) || "default");
+
+// Streak: muat status api sebelum render pertama
+loadStreak();
+
+// Aktivitas: muat log heatmap tersimpan sebelum render pertama
+loadActivity();
 
 // Fitur #4: muat data tersimpan dulu sebelum render pertama,
 // supaya data lama muncul saat halaman dibuka/refresh.
