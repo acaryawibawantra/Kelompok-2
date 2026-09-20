@@ -1095,15 +1095,131 @@ if (themeToggleBtn) {
 }
 
 // ============================================================
+// Settings: ganti gaya font judul + tombol install aplikasi
+// ============================================================
+
+const settingsBtn = document.getElementById("settings-btn");
+const settingsModal = document.getElementById("settings-modal");
+const installBtn = document.getElementById("install-btn");
+const installHint = document.getElementById("install-hint");
+const FONT_KEY = "taskcanvas-font";
+
+// Prompt install yang ditunda oleh browser (Chrome/Edge/Android)
+let deferredInstallPrompt = null;
+
+// Terapkan tema font: "default" | "clean" | "serif"
+function applyFont(font) {
+  document.body.dataset.font = font;
+  localStorage.setItem(FONT_KEY, font);
+
+  document.querySelectorAll(".font-option").forEach((option) => {
+    option.classList.toggle("active", option.dataset.font === font);
+  });
+}
+
+function openSettings() {
+  updateInstallSection();
+  settingsModal.classList.remove("hidden");
+}
+
+function closeSettings() {
+  settingsModal.classList.add("hidden");
+}
+
+// Atur tampilan bagian install sesuai kemampuan browser
+function updateInstallSection() {
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+
+  if (isStandalone) {
+    installBtn.classList.add("hidden");
+    installHint.textContent = "Aplikasi sudah terinstall di perangkat ini ✓";
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+    installBtn.classList.remove("hidden");
+    installHint.textContent = "";
+    return;
+  }
+
+  // iOS Safari tidak mendukung prompt install otomatis
+  installBtn.classList.add("hidden");
+  installHint.textContent =
+    "Di iPhone/iPad: buka lewat Safari, tekan tombol Share, lalu pilih Add to Home Screen.";
+}
+
+if (settingsBtn) {
+  settingsBtn.addEventListener("click", () => {
+    closeSidebar();
+    openSettings();
+  });
+}
+
+document.getElementById("settings-close").addEventListener("click", closeSettings);
+
+settingsModal.addEventListener("click", (event) => {
+  if (event.target === settingsModal) closeSettings();
+});
+
+document.querySelectorAll(".font-option").forEach((option) => {
+  option.addEventListener("click", () => applyFont(option.dataset.font));
+});
+
+// Browser menahan event ini sampai kita siap menampilkan prompt sendiri
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+});
+
+if (installBtn) {
+  installBtn.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (outcome === "accepted") {
+      closeSettings();
+    } else {
+      updateInstallSection();
+    }
+  });
+}
+
+// ============================================================
 // Inisialisasi aplikasi
 // ============================================================
 
 applyTheme(localStorage.getItem(THEME_KEY) || "light");
 
+// Settings: terapkan tema font tersimpan (default handwritten)
+applyFont(localStorage.getItem(FONT_KEY) || "default");
+
 // Fitur #4: muat data tersimpan dulu sebelum render pertama,
 // supaya data lama muncul saat halaman dibuka/refresh.
 loadTasks();
 render();
+
+// PWA shortcuts: app dibuka lewat tekan-lama ikon → jalankan aksi
+// sesuai hash (#space / #new-project / #toggle-theme), lalu bersihkan
+// hash agar aksi tidak terulang saat refresh.
+function handleAppShortcut() {
+  const hash = window.location.hash;
+
+  if (hash === "#new-project") {
+    openNewProjectModal();
+  } else if (hash === "#toggle-theme") {
+    toggleTheme();
+  }
+  // "#space" dan tanpa hash → biarkan aplikasi terbuka normal
+
+  if (hash) {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+}
+
+handleAppShortcut();
 
 // PWA: daftarkan service worker agar aplikasi bisa di-install
 // ke homescreen & dibuka offline. Tidak berjalan pada file:// —
