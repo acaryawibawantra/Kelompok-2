@@ -29,6 +29,10 @@
     </nav>
 
     <div class="topnav-right">
+      <div id="streak-badge" class="streak-badge" title="Selesaikan minimal 1 task setiap hari agar api tetap menyala">
+        <img id="streak-flame" src="icons/flame.svg" alt="Streak" class="streak-flame" />
+        <span id="streak-count">0</span>
+      </div>
       <button id="theme-toggle" class="theme-toggle" aria-label="Ganti tema" title="Ganti tema terang/gelap">🌙</button>
       <span class="saved-pill" title="Semua perubahan tersimpan otomatis di browser">
         <span class="saved-dot"></span>
@@ -41,7 +45,7 @@
         placeholder="Search projects..."
         autocomplete="off"
       />
-      <button id="topnav-new-project" class="btn-primary btn-sm">+ New Project</button>
+      <button id="topnav-new-project" class="btn-primary btn-sm" aria-label="New Project">+<span class="btn-label"> New Project</span></button>
     </div>
   </header>
 
@@ -89,6 +93,26 @@
             </div>
           </div>
         </div>
+        <!-- Aktivitas: heatmap konsistensi ala GitHub -->
+        <div class="activity-card">
+          <div class="activity-header">
+            <span id="activity-year" class="activity-year">2026</span>
+            <span id="activity-summary" class="activity-summary">0 task diselesaikan</span>
+          </div>
+          <div id="activity-heatmap" class="activity-heatmap"><!-- Dirender oleh js/app.js --></div>
+          <div class="activity-footer">
+            <div class="activity-legend">
+              <span>Kurang</span>
+              <span class="heat lvl-0"></span>
+              <span class="heat lvl-1"></span>
+              <span class="heat lvl-2"></span>
+              <span class="heat lvl-3"></span>
+              <span class="heat lvl-4"></span>
+              <span>Banyak</span>
+            </div>
+          </div>
+        </div>
+
         <div id="project-grid" class="card-grid"><!-- Kartu dirender oleh js/app.js --></div>
       </section>
 
