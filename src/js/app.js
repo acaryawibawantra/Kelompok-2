@@ -418,6 +418,12 @@ function goToSpace() {
   render();
 }
 
+function goToArchive() {
+  currentPage = { view: "archive", projectId: null, subjectId: null };
+  closeSidebar();
+  render();
+}
+
 function openProject(projectId) {
   currentPage = { view: "project", projectId, subjectId: null };
   closeSidebar();
@@ -455,6 +461,8 @@ function render() {
     renderSpace();
   } else if (currentPage.view === "project") {
     renderProjectPage();
+  } else if (currentPage.view === "archive") {                                                          // ← DAN INI
+    renderArchive();
   } else {
     renderSubjectPage();
     renderTasks();
@@ -541,6 +549,7 @@ function renderSpace() {
   // Filter berdasarkan tab board + kotak search di top navigation
   const visibleProjects = projects.filter(
     (project) =>
+      !project.archived && 
       project.name.toLowerCase().includes(searchQuery) &&
       (boardFilter !== "favorites" || project.favorite === true)
   );
@@ -586,7 +595,9 @@ function renderSpace() {
     actions.appendChild(
       makeCardActionBtn("🗑", "Hapus project", () => deleteProject(project.id))
     );
-
+  actions.appendChild(
+    makeCardActionBtn("🗄", "Arsipkan project", () => archiveProject(project.id))
+    );
     const icon = document.createElement("div");
     icon.className = "card-icon";
     icon.textContent = project.icon;
@@ -686,6 +697,59 @@ function renderSpace() {
     openModal("New Project", "Nama project…", addProject);
   });
   grid.appendChild(newCard);
+}
+
+function renderArchive() {
+  const container = document.getElementById("page-archive");
+  const list = container.querySelector(".card-grid") || document.createElement("div");
+  
+  const archivedProjects = projects.filter((p) => p.archived === true);
+  
+  // Hapus placeholder lama & grid lama kalau ada
+  const oldHint = container.querySelector(".empty-hint");
+  if (oldHint) oldHint.remove();
+  const oldGrid = container.querySelector(".card-grid");
+  if (oldGrid) oldGrid.remove();
+
+  if (archivedProjects.length === 0) {
+    const hint = document.createElement("p");
+    hint.className = "empty-hint";
+    hint.textContent = "Belum ada yang diarsipkan.";
+    container.appendChild(hint);
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "card-grid";
+
+  archivedProjects.forEach((project) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const icon = document.createElement("div");
+    icon.className = "card-icon";
+    icon.textContent = project.icon;
+
+    const name = document.createElement("div");
+    name.className = "card-name";
+    name.textContent = project.name;
+
+    const restoreBtn = document.createElement("button");
+    restoreBtn.className = "btn-ghost";
+    restoreBtn.textContent = "↩ Kembalikan";
+    restoreBtn.addEventListener("click", () => {
+      project.archived = false;
+      saveProjects();
+      render();
+    });
+
+    card.appendChild(icon);
+    card.appendChild(name);
+    card.appendChild(restoreBtn);
+    grid.appendChild(card);
+  });
+
+  container.appendChild(grid);
 }
 
 function renderProjectPage() {
@@ -996,6 +1060,15 @@ function deleteProject(projectId) {
   );
 }
 
+function archiveProject(projectId) {
+  const project = projects.find((p) => p.id === projectId);
+  if (!project) return;
+  
+  project.archived = true;
+  saveProjects();
+  render();
+}
+
 function deleteSubject(projectId, subjectId) {
   const project = projects.find((p) => p.id === projectId);
   const subject = project && project.subjects.find((s) => s.id === subjectId);
@@ -1031,6 +1104,7 @@ document.getElementById("new-subject-btn").addEventListener("click", () => {
 // Navigasi top bar
 document.getElementById("nav-link-space").addEventListener("click", goToSpace);
 document.getElementById("nav-link-projects").addEventListener("click", goToSpace);
+document.getElementById("nav-link-archive").addEventListener("click", goToArchive);
 
 // Search sederhana: filter kartu project di My Space
 document.getElementById("project-search").addEventListener("input", (event) => {
