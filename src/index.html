@@ -25,7 +25,7 @@
     <nav class="topnav-links">
       <button id="nav-link-space" class="topnav-link">My Space</button>
       <button id="nav-link-projects" class="topnav-link">Projects</button>
-      <button class="topnav-link" title="Segera hadir">Archive</button>
+      <button id="nav-link-archive" class="topnav-link">Archive</button>
     </nav>
 
     <div class="topnav-right">
@@ -89,7 +89,7 @@
             <div class="board-filters">
               <button class="board-filter-btn active" id="board-filter-all">All Boards (0)</button>
               <button class="board-filter-btn" id="board-filter-fav">Favorites</button>
-              <button class="board-filter-btn" id="board-filter-recent" title="Segera hadir">Recent</button>
+              <button class="board-filter-btn" id="board-filter-recent">Recent</button>
             </div>
           </div>
         </div>
@@ -162,6 +162,21 @@
           <button id="clear-completed">Hapus yang Selesai</button>
         </div>
       </section>
+
+      <!-- PAGE 4: Archive -->
+        <section id="page-archive" class="page hidden">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-tag">
+        <span class="page-tag-icon">🗄</span>
+        <span class="page-tag-text">ARCHIVE</span>
+      </div>
+      <h1 class="page-title">Archive</h1>
+      <p class="page-subtitle">Project dan task yang sudah diarsipkan.</p>
+    </div>
+  </div>
+  <p class="empty-hint">Belum ada yang diarsipkan.</p>
+</section>
     </main>
   </div>
 
@@ -178,7 +193,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL SETTINGS ==================== -->
+<!--settings -->
   <div id="settings-modal" class="modal hidden">
     <div class="modal-box">
       <h2>Settings</h2>

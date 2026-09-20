@@ -418,6 +418,12 @@ function goToSpace() {
   render();
 }
 
+function goToArchive() {
+  currentPage = { view: "archive", projectId: null, subjectId: null };
+  closeSidebar();
+  render();
+}
+
 function openProject(projectId) {
   currentPage = { view: "project", projectId, subjectId: null };
   closeSidebar();
@@ -450,11 +456,14 @@ function render() {
   document.getElementById("page-space").classList.toggle("hidden", currentPage.view !== "space");
   document.getElementById("page-project").classList.toggle("hidden", currentPage.view !== "project");
   document.getElementById("page-subject").classList.toggle("hidden", currentPage.view !== "subject");
+  document.getElementById("page-archive").classList.toggle("hidden", currentPage.view !== "archive");
 
   if (currentPage.view === "space") {
     renderSpace();
   } else if (currentPage.view === "project") {
     renderProjectPage();
+  } else if (currentPage.view === "archive") {                                                          // ← DAN INI
+    renderArchive();
   } else {
     renderSubjectPage();
     renderTasks();
@@ -497,7 +506,6 @@ function renderSidebar() {
   });
 }
 
-// Tombol aksi kecil (favorit / edit / hapus) untuk kartu project & subject.
 function makeCardActionBtn(label, title, onClick, extraClass) {
   const btn = document.createElement("button");
   btn.className = "card-action-btn" + (extraClass ? " " + extraClass : "");
@@ -517,19 +525,22 @@ function renderSpace() {
   const grid = document.getElementById("project-grid");
   grid.innerHTML = "";
 
+  // Project aktif = belum diarsipkan (arsip tidak dihitung di board manapun)
+  const activeProjects = projects.filter((p) => !p.archived);
+
   // Favorit mencakup project DAN subject yang di-heart
-  const favoriteSubjects = projects.flatMap((project) =>
+  const favoriteSubjects = activeProjects.flatMap((project) =>
     project.subjects
       .filter((subject) => subject.favorite === true)
       .map((subject) => ({ project, subject }))
   );
   const favoriteCount =
-    projects.filter((p) => p.favorite).length + favoriteSubjects.length;
+    activeProjects.filter((p) => p.favorite).length + favoriteSubjects.length;
 
   // Sinkronkan label, jumlah, dan active state pada tab board filter
   const boardFilterAll = document.getElementById("board-filter-all");
   if (boardFilterAll) {
-    boardFilterAll.textContent = `All Boards (${projects.length})`;
+    boardFilterAll.textContent = `All Boards (${activeProjects.length})`;
     boardFilterAll.classList.toggle("active", boardFilter === "all");
   }
   const boardFilterFav = document.getElementById("board-filter-fav");
@@ -537,19 +548,37 @@ function renderSpace() {
     boardFilterFav.textContent = `Favorites (${favoriteCount})`;
     boardFilterFav.classList.toggle("active", boardFilter === "favorites");
   }
+  const boardFilterRecent = document.getElementById("board-filter-recent");
+  const recentProjects = projects
+    .filter((p) => !p.archived && p.lastOpenedAt)
+    .sort((a, b) => b.lastOpenedAt - a.lastOpenedAt);
+  if (boardFilterRecent) {
+    boardFilterRecent.textContent = `Recent (${Math.min(recentProjects.length, 5)})`;
+    boardFilterRecent.classList.toggle("active", boardFilter === "recent");
+  }
 
   // Filter berdasarkan tab board + kotak search di top navigation
-  const visibleProjects = projects.filter(
+  let visibleProjects = projects.filter(
     (project) =>
+      !project.archived &&
       project.name.toLowerCase().includes(searchQuery) &&
-      (boardFilter !== "favorites" || project.favorite === true)
+      (boardFilter !== "favorites" || project.favorite === true) &&
+      (boardFilter !== "recent" || project.lastOpenedAt)
   );
+
+  // Tab Recent: 5 project terakhir dibuka, terbaru duluan
+  if (boardFilter === "recent") {
+    visibleProjects.sort((a, b) => b.lastOpenedAt - a.lastOpenedAt);
+    visibleProjects = visibleProjects.slice(0, 5);
+  }
 
   if (visibleProjects.length === 0) {
     const hint = document.createElement("p");
     hint.className = "empty-hint";
     if (boardFilter === "favorites") {
       hint.textContent = "Belum ada project favorit. Klik ikon ❤️ pada kartu project.";
+    } else if (boardFilter === "recent") {
+      hint.textContent = "Belum ada riwayat. Buka sebuah project agar muncul di sini.";
     } else if (searchQuery !== "") {
       hint.textContent = `Tidak ada project yang cocok dengan "${searchQuery}".`;
     } else {
@@ -564,7 +593,6 @@ function renderSpace() {
       0
     );
 
-    // Kartu pakai div (bukan button) supaya bisa memuat tombol aksi di dalamnya
     const card = document.createElement("div");
     card.className = "card";
     card.setAttribute("role", "button");
@@ -586,7 +614,9 @@ function renderSpace() {
     actions.appendChild(
       makeCardActionBtn("🗑", "Hapus project", () => deleteProject(project.id))
     );
-
+  actions.appendChild(
+    makeCardActionBtn("🗄", "Arsipkan project", () => archiveProject(project.id))
+    );
     const icon = document.createElement("div");
     icon.className = "card-icon";
     icon.textContent = project.icon;
@@ -686,6 +716,59 @@ function renderSpace() {
     openModal("New Project", "Nama project…", addProject);
   });
   grid.appendChild(newCard);
+}
+
+function renderArchive() {
+  const container = document.getElementById("page-archive");
+  const list = container.querySelector(".card-grid") || document.createElement("div");
+  
+  const archivedProjects = projects.filter((p) => p.archived === true);
+  
+  // Hapus placeholder lama & grid lama kalau ada
+  const oldHint = container.querySelector(".empty-hint");
+  if (oldHint) oldHint.remove();
+  const oldGrid = container.querySelector(".card-grid");
+  if (oldGrid) oldGrid.remove();
+
+  if (archivedProjects.length === 0) {
+    const hint = document.createElement("p");
+    hint.className = "empty-hint";
+    hint.textContent = "Belum ada yang diarsipkan.";
+    container.appendChild(hint);
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "card-grid";
+
+  archivedProjects.forEach((project) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const icon = document.createElement("div");
+    icon.className = "card-icon";
+    icon.textContent = project.icon;
+
+    const name = document.createElement("div");
+    name.className = "card-name";
+    name.textContent = project.name;
+
+    const restoreBtn = document.createElement("button");
+    restoreBtn.className = "btn-ghost";
+    restoreBtn.textContent = "↩ Kembalikan";
+    restoreBtn.addEventListener("click", () => {
+      project.archived = false;
+      saveProjects();
+      render();
+    });
+
+    card.appendChild(icon);
+    card.appendChild(name);
+    card.appendChild(restoreBtn);
+    grid.appendChild(card);
+  });
+
+  container.appendChild(grid);
 }
 
 function renderProjectPage() {
@@ -996,6 +1079,15 @@ function deleteProject(projectId) {
   );
 }
 
+function archiveProject(projectId) {
+  const project = projects.find((p) => p.id === projectId);
+  if (!project) return;
+  
+  project.archived = true;
+  saveProjects();
+  render();
+}
+
 function deleteSubject(projectId, subjectId) {
   const project = projects.find((p) => p.id === projectId);
   const subject = project && project.subjects.find((s) => s.id === subjectId);
@@ -1031,6 +1123,7 @@ document.getElementById("new-subject-btn").addEventListener("click", () => {
 // Navigasi top bar
 document.getElementById("nav-link-space").addEventListener("click", goToSpace);
 document.getElementById("nav-link-projects").addEventListener("click", goToSpace);
+document.getElementById("nav-link-archive").addEventListener("click", goToArchive);
 
 // Search sederhana: filter kartu project di My Space
 document.getElementById("project-search").addEventListener("input", (event) => {
@@ -1046,6 +1139,12 @@ document.getElementById("board-filter-all").addEventListener("click", () => {
 
 document.getElementById("board-filter-fav").addEventListener("click", () => {
   boardFilter = "favorites";
+  if (currentPage.view === "space") renderSpace();
+});
+
+// Tab Recent: tampilkan project yang terakhir dibuka
+document.getElementById("board-filter-recent").addEventListener("click", () => {
+  boardFilter = "recent";
   if (currentPage.view === "space") renderSpace();
 });
 
@@ -1272,7 +1371,7 @@ function renderActivityHeatmap() {
     summary.textContent =
       total > 0
         ? `${total} task diselesaikan`
-        : "Belum ada aktivitas — centang task untuk mulai mengisi heatmap";
+        : "centang task untuk mulai mengisi heatmap";
   }
 }
 
