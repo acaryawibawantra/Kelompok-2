@@ -6,7 +6,7 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#FAFAF7",
   "theme_color": "#5B5CE2",
   "icons": [
@@ -21,6 +21,26 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Space",
+      "short_name": "My Space",
+      "description": "Buka daftar semua project",
+      "url": "./index.html#space"
+    },
+    {
+      "name": "New Project",
+      "short_name": "New",
+      "description": "Buat project baru",
+      "url": "./index.html#new-project"
+    },
+    {
+      "name": "Ganti Tema",
+      "short_name": "Tema",
+      "description": "Toggle terang/gelap",
+      "url": "./index.html#toggle-theme"
     }
   ]
 }
