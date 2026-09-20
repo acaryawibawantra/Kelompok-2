@@ -3,47 +3,156 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>To Do List</title>
+  <title>TaskCanvas</title>
   <link rel="stylesheet" href="css/style.css" />
+
+  <!-- PWA: agar bisa di-install ke homescreen seperti aplikasi -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#5B5CE2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="TaskCanvas" />
 </head>
 <body>
-  <main class="app">
-    <h1>📋 My To Do List</h1>
+  <!-- ==================== TOP NAVIGATION ==================== -->
+  <header class="topnav">
+    <button id="menu-toggle" class="menu-toggle" aria-label="Buka menu">☰</button>
 
-    <form id="task-form" class="task-form">
+    <div class="topnav-brand">✦ TaskCanvas</div>
+
+    <nav class="topnav-links">
+      <button id="nav-link-space" class="topnav-link">My Space</button>
+      <button id="nav-link-projects" class="topnav-link">Projects</button>
+      <button class="topnav-link" title="Segera hadir">Archive</button>
+    </nav>
+
+    <div class="topnav-right">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Ganti tema" title="Ganti tema terang/gelap">🌙</button>
+      <span class="saved-pill" title="Semua perubahan tersimpan otomatis di browser">
+        <span class="saved-dot"></span>
+        Saved to LocalStorage
+      </span>
       <input
         type="text"
-        id="task-input"
-        placeholder="Mau ngapain hari ini?"
+        id="project-search"
+        class="search-input"
+        placeholder="Search projects..."
         autocomplete="off"
       />
-      <button type="submit">Tambah</button>
-    </form>
+      <button id="topnav-new-project" class="btn-primary btn-sm">+ New Project</button>
+    </div>
+  </header>
 
-    <!--
-      TODO (Fitur #3 - Filter Task):
-      Tambahkan 3 tombol filter di sini: "Semua", "Aktif", "Selesai".
-      Lihat README.md bagian "Fitur yang Harus Dibuat" nomor 3 untuk hint lengkap.
-    -->
-      <div class="filters" id="filters">
-        <button class="filter-btn active" data-filter="all">Semua</button>
-        <button class="filter-btn" data-filter="active">Aktif</button>
-        <button class="filter-btn" data-filter="completed">Selesai</button> 
+  <div id="backdrop" class="backdrop"></div>
+
+  <div class="layout">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-brand">TaskCanvas</div>
+      <div class="sidebar-subtitle">Personal Productivity Workspace</div>
+
+      <div class="sidebar-divider"></div>
+
+      <button id="nav-space" class="sidebar-item">🏠 My Space</button>
+
+      <div class="sidebar-section-label">PROJECTS</div>
+      <div id="sidebar-projects"><!-- Diisi oleh js/app.js --></div>
+
+      <button id="new-project-btn" class="sidebar-add">+ New Project</button>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-divider"></div>
+        <button class="sidebar-item" title="Segera hadir">⚙ Settings</button>
       </div>
+    </aside>
 
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="content">
+      <!-- PAGE 1: My Space -->
+      <section id="page-space" class="page">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-tag">
+              <span class="page-tag-icon">📖</span>
+              <span class="page-tag-text">ROOT CANVAS</span>
+            </div>
+            <h1 class="page-title">My Space</h1>
+            <p class="page-subtitle">Select a workspace or project to view subjects and task lists.</p>
+          </div>
+          <div class="page-header-right">
+            <div class="board-filters">
+              <button class="board-filter-btn active" id="board-filter-all">All Boards (0)</button>
+              <button class="board-filter-btn" id="board-filter-fav">Favorites</button>
+              <button class="board-filter-btn" id="board-filter-recent" title="Segera hadir">Recent</button>
+            </div>
+          </div>
+        </div>
+        <div id="project-grid" class="card-grid"><!-- Kartu dirender oleh js/app.js --></div>
+      </section>
 
-    <ul id="task-list" class="task-list">
-      <!-- Task dirender otomatis oleh js/app.js, jangan ditulis manual di sini -->
-    </ul>
+      <!-- PAGE 2: Project View -->
+      <section id="page-project" class="page hidden">
+        <div id="project-breadcrumb" class="breadcrumb"></div>
+        <h1 id="project-title" class="page-title"></h1>
+        <p id="project-subtitle" class="page-subtitle"></p>
+        <div id="subject-grid" class="card-grid"><!-- Kartu dirender oleh js/app.js --></div>
+        <button id="new-subject-btn" class="btn-primary">+ New Subject</button>
+      </section>
 
-    
+      <!-- PAGE 3: Task View (ID fitur existing dipertahankan) -->
+      <section id="page-subject" class="page hidden">
+        <div id="subject-breadcrumb" class="breadcrumb"></div>
+        <h1 id="subject-title" class="page-title"></h1>
+        <p id="subject-subtitle" class="page-subtitle"></p>
 
-    <div class="footer" id="footer">
-        <span id="task-counter">0 task tersisa</span>
-        <button id="clear-completed">Hapus yang Selesai</button>
+        <div class="filters" id="filters">
+          <button class="filter-btn active" data-filter="all">Semua</button>
+          <button class="filter-btn" data-filter="active">Aktif</button>
+          <button class="filter-btn" data-filter="completed">Selesai</button>
+        </div>
+
+        <form id="task-form" class="task-form">
+          <input
+            type="text"
+            id="task-input"
+            placeholder="Mau ngapain hari ini?"
+            autocomplete="off"
+          />
+          <input
+            type="date"
+            id="task-due-date"
+            class="due-date-input"
+            title="Deadline task (opsional)"
+          />
+          <button type="submit" class="btn-primary">+ Add Task</button>
+        </form>
+
+        <ul id="task-list" class="task-list">
+          <!-- Task dirender otomatis oleh js/app.js, jangan ditulis manual di sini -->
+        </ul>
+
+        <div class="footer" id="footer">
+          <span id="task-counter">0 task tersisa</span>
+          <button id="clear-completed">Hapus yang Selesai</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==================== MODAL (New Project / New Subject) ==================== -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h2 id="modal-title">New Project</h2>
+      <p id="modal-message" class="modal-message hidden"></p>
+      <input type="text" id="modal-input" placeholder="Nama…" autocomplete="off" />
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn-ghost">Batal</button>
+        <button id="modal-save" class="btn-primary">Simpan</button>
       </div>
-    
-  </main>
+    </div>
+  </div>
 
   <script src="js/app.js"></script>
 </body>
