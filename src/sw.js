@@ -15,8 +15,6 @@ const APP_SHELL = [
   "./js/app.js",
   "./manifest.json",
   "./icons/icon.svg",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
 ];
 
 // Saat di-install: simpan seluruh app shell ke cache
