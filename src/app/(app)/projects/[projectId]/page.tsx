@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, Lock, Share2 } from "lucide-react";
 import { Board } from "@/components/board/board";
+import { ShareModal } from "@/components/collab/share-modal";
 import { ProjectHeader, ProjectHeaderSkeleton } from "@/components/project/project-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { buttonClass } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { useProject } from "@/lib/queries";
 import { useProjectRole } from "@/components/board/use-project-role";
 import { useMe } from "@/lib/queries";
@@ -18,9 +20,10 @@ export default function ProjectPage() {
   const projectId = params.projectId;
   const { data, isLoading, isError } = useProject(projectId);
   const { data: user } = useMe();
-  const { canEdit } = useProjectRole(data?.members);
+  const { canEdit, isOwner } = useProjectRole(data?.members);
   const view = useUiStore((state) => state.boardView);
   const setBoardView = useUiStore((state) => state.setBoardView);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const timezone = user?.timezone ?? "Asia/Jakarta";
 
@@ -63,6 +66,12 @@ export default function ProjectPage() {
         members={data.members}
         view={view}
         onViewChange={setBoardView}
+        actions={
+          <Button variant="secondary" size="sm" onClick={() => setShareOpen(true)}>
+            <Share2 className="size-4" aria-hidden />
+            Bagikan
+          </Button>
+        }
       />
       <div className="min-h-0 flex-1">
         <Board
@@ -73,6 +82,15 @@ export default function ProjectPage() {
           view={view}
         />
       </div>
+
+      <ShareModal
+        projectId={projectId}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        members={data.members}
+        currentUserId={user?.id}
+        isOwner={isOwner}
+      />
     </div>
   );
 }

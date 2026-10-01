@@ -1,6 +1,6 @@
 "use client";
 
-import { AvatarStack } from "@/components/ui/avatar";
+import { PresenceStack } from "@/components/collab/presence-stack";
 import { Progress } from "@/components/ui/progress";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +26,6 @@ export function ProjectHeader({
   className,
 }: ProjectHeaderProps) {
   const { total, done } = project.taskStats;
-  const online = members.filter((member) => member.online);
 
   return (
     <div className={cn("flex flex-col gap-4 py-4", className)}>
@@ -55,18 +54,8 @@ export function ProjectHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-2 sm:flex">
-            <AvatarStack
-              people={members.map((member) => ({
-                id: member.userId,
-                name: member.name,
-                avatarColor: member.avatarColor,
-              }))}
-              max={5}
-            />
-            {online.length > 0 ? (
-              <span className="text-xs text-muted">{online.length} online</span>
-            ) : null}
+          <div className="hidden sm:block">
+            <PresenceStack members={members} />
           </div>
           {actions}
         </div>

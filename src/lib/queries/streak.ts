@@ -86,3 +86,14 @@ export function useDeclineInvite() {
     },
   });
 }
+
+export function useJoinInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => api.invites.join(token),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.invites });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
