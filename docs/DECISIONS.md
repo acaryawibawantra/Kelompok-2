@@ -108,6 +108,36 @@ Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md
 
 ---
 
+## 2026-10-01 — Fase 2 (backend Cloudflare)
+
+### P2-A. Pola Durable Object terpisah DIVERIFIKASI dengan `wrangler dev`
+- **Konfigurasi:** Worker `taskcanvas-realtime` mendeklarasikan kelas `ProjectRoom` lewat field
+  deklaratif `exports` (`{ type: "durable-object", storage: "sqlite" }`), dan Worker utama
+  (`taskcanvas`, OpenNext) memakai binding lintas-script
+  `{ name: "PROJECT_ROOM", class_name: "ProjectRoom", script_name: "taskcanvas-realtime" }`.
+- **Hasil uji lokal (2026-10-01):**
+  - `wrangler dev --config worker-realtime/wrangler.jsonc` menerima field `exports` tanpa error;
+    binding dilaporkan `env.PROJECT_ROOM (ProjectRoom) — Durable Object — local`.
+  - `GET /health?project=p_kuliah` mengembalikan JSON dari DO dengan id berbeda per project.
+  - Worker probe terpisah dengan `script_name: taskcanvas-realtime` menampilkan binding
+    `local [connected]` dan berhasil memanggil DO lewat `stub.fetch(...)` (cross-worker).
+- **Kesimpulan:** pola DO terpisah + `script_name` + `exports` **valid** dan dapat dikembangkan.
+  Tidak perlu fallback ke `migrations` lama.
+
+### P2-B. `database_id` placeholder untuk dev lokal
+- **Keputusan:** `wrangler.jsonc` memakai `"database_id": "local-placeholder"`.
+- **Alasan:** dev lokal (`--local`) tidak butuh id D1 asli; id diisi setelah `wrangler d1 create`
+  saat deploy. Dicatat di panduan deploy (README/PLAN).
+- **Dampak:** wajib diganti sebelum `db:migrate:remote`/`deploy`.
+
+### P2-C. workerd/esbuild perlu `onlyBuiltDependencies`
+- **Keputusan:** menambahkan `pnpm.onlyBuiltDependencies` (`workerd`, `esbuild`, `sharp`) di
+  `package.json`.
+- **Alasan:** pnpm 10 memblokir postinstall secara default; `wrangler dev` butuh binary workerd.
+- **Dampak:** `pnpm install` menjalankan postinstall yang diperlukan.
+
+---
+
 ## Pertanyaan terbuka
 - Q1. Default project view — asumsi **Board**.
 - Q2. Login Google — asumsi **tidak** di v2.

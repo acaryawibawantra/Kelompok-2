@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "taskcanvas",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "taskcanvas" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "taskcanvas-db",
+      "database_id": "local-placeholder",
+      "migrations_dir": "drizzle/migrations"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PROJECT_ROOM",
+        "class_name": "ProjectRoom",
+        "script_name": "taskcanvas-realtime"
+      }
+    ]
+  },
+  "vars": {
+    "APP_URL": "http://localhost:3000"
+  }
+}
