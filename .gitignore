@@ -50,3 +50,6 @@ worker-realtime/.open-next/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# editor
+.vscode/
