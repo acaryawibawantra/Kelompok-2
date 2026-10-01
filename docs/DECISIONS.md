@@ -18,6 +18,11 @@ Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md
   `exports: { ProjectRoom: { type: "durable-object", storage: "sqlite" } }`.
 - **Alasan:** dokumentasi Cloudflare (diperbarui 2026-09-28) menyatakan `exports` menggantikan array
   `migrations` lama dan merupakan cara deklaratif terbaru; SQLite storage direkomendasikan.
+- **Sumber resmi:** https://developers.cloudflare.com/durable-objects/reference/durable-objects-migrations/
+  (halaman "Durable Object class exports", diperbarui 2026-09-28), diakses 2026-10-01.
+- **Verifikasi:** akan divalidasi dengan `wrangler dev` (Worker `taskcanvas-realtime`) di awal Fase 2
+  sebelum deploy; bila `exports` ditolak oleh versi Wrangler/workerd saat itu, fallback ke array
+  `migrations` dan dicatat di sini.
 - **Dampak:** berbeda dari contoh `migrations` di PRD Bagian 14. `exports` dan `migrations` saling
   eksklusif; kita konsisten memakai `exports`.
 
@@ -34,11 +39,16 @@ Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md
 - **Dampak:** tidak ada `tailwind.config.js` klasik. `--font-title` dikelola via CSS variable +
   `next/font`.
 
-### D5. Timestamp DB = epoch ms (integer)
-- **Keputusan:** `created_at`/`updated_at`/dll. memakai `integer({ mode: "timestamp_ms" })`.
+### D5. Timestamp DB = epoch ms (integer), API = ISO-8601 string
+- **Keputusan:** `created_at`/`updated_at`/dll. memakai `integer({ mode: "timestamp_ms" })`; lapisan
+  API/kontrak (termasuk `src/lib/schemas/`) tetap memakai **ISO-8601 string**.
 - **Alasan:** PRD Bagian 6 memberi kebebasan memilih salah satu asalkan konsisten; integer lebih
-  ringkas dan cepat diurutkan. Kolom tanggal harian tetap `text 'YYYY-MM-DD'`.
-- **Dampak:** konversi ke ISO hanya di lapisan API.
+  ringkas dan cepat diurutkan. Tipe Zod/API harus identik antara mock dan http asli.
+- **Mapper:** disediakan **satu mapper terpusat di service layer** (Fase 2, mis.
+  `src/server/mappers.ts`) yang mengubah row epoch ms → ISO string saat keluar dan ISO → epoch ms
+  saat masuk. Mock Fase 1 mengikuti bentuk ISO yang sama, sehingga komponen tidak berubah saat
+  pindah dari mock ke API asli.
+- **Dampak:** konversi tidak boleh tersebar; hanya di service/mapper layer.
 
 ### D6. ID memakai `nanoid`
 - **Keputusan:** semua ID = string `nanoid` (bukan ULID/UUID).
