@@ -41,6 +41,10 @@ export const updateProjectSchema = z.object({
   description: z.string().max(1000).nullable().optional(),
 });
 
+export const favoriteInputSchema = z.object({
+  value: z.boolean(),
+});
+
 export type ProjectScope = z.infer<typeof projectScopeSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;

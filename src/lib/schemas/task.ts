@@ -47,6 +47,18 @@ export const taskWithContextSchema = taskSchema.extend({
   subjectName: z.string(),
 });
 
+export const tasksQuerySchema = z
+  .object({
+    archived: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
+    due: z.literal("today").optional(),
+  })
+  .refine((value) => !(value.archived === true && value.due === "today"), {
+    message: "Pilih salah satu: archived atau due.",
+  });
+
 export type Priority = z.infer<typeof prioritySchema>;
 export type TaskFilter = z.infer<typeof taskFilterSchema>;
 export type Task = z.infer<typeof taskSchema>;
