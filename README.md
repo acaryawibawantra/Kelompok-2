@@ -1,91 +1,113 @@
 # TaskCanvas v2
 
 TaskCanvas adalah aplikasi manajemen tugas berbasis canvas visual dengan struktur
-**Project → Subject → Task**. Versi ini merombak aplikasi HTML/CSS/JS lama (ada di
-`legacy-v1/`) menjadi aplikasi full-stack **Next.js + Cloudflare**.
+**Project → Subject → Task**, dibangun sebagai aplikasi full-stack **Next.js + Cloudflare**.
+Versi lama (HTML/CSS/JS) ada di `legacy-v1/`.
 
-> Dokumen sumber kebenaran: [`docs/PRD.md`](docs/PRD.md). Rencana kerja: [`docs/PLAN.md`](docs/PLAN.md).
-> Catatan deviasi & asumsi: [`docs/DECISIONS.md`](docs/DECISIONS.md).
+> Dokumen sumber kebenaran: [`docs/PRD.md`](docs/PRD.md). Rencana: [`docs/PLAN.md`](docs/PLAN.md).
+> Deviasi & asumsi: [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 ## Status
 
-- **Fase 1 — Frontend dengan data mock: selesai.** Semua halaman P0 berfungsi dengan data mock
-  yang persisten di `localStorage`, tampilan Bahasa Indonesia, dark mode, dan 3 gaya font judul.
-- **Fase 2 — Backend Cloudflare: belum dikerjakan** (menunggu konfirmasi).
+- **Fase 1 — Frontend dengan mock: selesai** (tag `phase-1-done`).
+- **Fase 2 — Backend Cloudflare: selesai.** Auth sesi JWT httpOnly, D1 + Drizzle, authorization
+  terpusat, CRUD, kolaborasi (invite/role), streak server-side atomik, dan realtime Durable Object.
+  Layer `lib/api/http` aktif secara default (`NEXT_PUBLIC_API_MODE=http`).
 
 ## Stack
 
 | Layer | Teknologi |
 |---|---|
 | Framework | Next.js 16 (App Router) + React 19 + TypeScript strict |
-| Styling | Tailwind CSS 4 (CSS-first `@theme`) |
-| Server state | TanStack Query 5 |
-| UI state | Zustand 5 |
-| Validasi | Zod 4 |
-| Drag & drop | `@dnd-kit` |
-| Ikon/animasi | `lucide-react`, `motion` |
-| Tanggal | `date-fns` + `date-fns-tz` |
+| Styling | Tailwind CSS 4 |
+| Server state | TanStack Query 5 · UI state: Zustand 5 |
+| Validasi | Zod 4 (FE & BE) |
+| Database | Cloudflare D1 + Drizzle ORM |
+| Auth | JWT httpOnly (`jose`) + PBKDF2 (Web Crypto) |
+| Realtime | Cloudflare Durable Object (`ProjectRoom`, WebSocket Hibernation API) |
+| Deploy | `@opennextjs/cloudflare` + Wrangler |
 | Test | Vitest |
 
 ## Prasyarat
 
-- Node.js >= 20.11 (diuji pada Node 22)
-- pnpm 10 (`npm i -g pnpm` bila belum ada)
+- Node.js >= 20.11 (diuji Node 22) dan pnpm 10
+- Wrangler 4 (devDependency)
 
-## Menjalankan
+## Menjalankan lokal (full-stack)
 
 ```bash
 pnpm install
-cp .env.example .env.local   # opsional; default sudah mock
-pnpm dev
+cp .dev.vars.example .dev.vars    # berisi JWT_SECRET & NEXT_PUBLIC_API_MODE=http
+pnpm db:migrate:local             # buat skema D1 lokal
+pnpm worker:dev                   # terminal 1: Durable Object realtime di :8788
+pnpm dev                          # terminal 2: Next.js di :3000
 ```
 
-Buka http://localhost:3000. Login dengan akun demo:
+Akun: daftar lewat `/register`, atau login dengan kredensial yang kamu buat.
+Ingin mode mock tanpa backend? Set `NEXT_PUBLIC_API_MODE=mock`.
 
-- Email: `demo@taskcanvas.app`
-- Password: bebas, minimal 8 karakter
-
-Data mock disimpan di `localStorage` (kunci `tc-mock-db-v1`). Untuk mereset data,
-hapus kunci tersebut dari DevTools, atau panggil `resetDb()` dari `src/lib/api/mock`.
+Variabel: `REALTIME_WS_URL` (wrangler.jsonc) menunjuk Worker realtime; dev = `ws://localhost:8788`.
 
 ## Skrip
 
 | Skrip | Fungsi |
 |---|---|
-| `pnpm dev` | Jalankan Next.js dev server |
-| `pnpm build` | Build produksi |
-| `pnpm start` | Jalankan hasil build |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm lint` | ESLint |
-| `pnpm test` | Unit test (Vitest) |
-| `pnpm format` | Prettier |
+| `pnpm dev` | Next.js dev server (bindings Cloudflare aktif via OpenNext) |
+| `pnpm worker:dev` | Durable Object realtime (port 8788) |
+| `pnpm build` / `pnpm start` | Build & jalankan Next.js |
+| `pnpm preview` | Build OpenNext + jalankan di runtime Workers lokal |
+| `pnpm deploy` | Build OpenNext + deploy Worker utama |
+| `pnpm db:generate` | Generate migrasi Drizzle |
+| `pnpm db:migrate:local` / `db:migrate:remote` | Terapkan migrasi D1 |
+| `pnpm typecheck` / `lint` / `test` | Verifikasi |
+| `pnpm cf-typegen` | Generate `cloudflare-env.d.ts` |
 
-## Struktur singkat
+## Arsitektur singkat
 
 ```
 src/
-├─ app/                 # route groups (auth) & (app), API nanti di src/app/api
-├─ components/          # ui, layout, project, board, streak, collab, settings, archive, dashboard
-├─ lib/
-│  ├─ api/              # interface TaskCanvasApi + mock (http menyusul di Fase 2)
-│  ├─ queries/          # hooks TanStack Query
-│  ├─ schemas/          # Zod (sumber tipe, dipakai FE & BE)
-│  ├─ stores/           # Zustand
-│  ├─ streak.ts         # engine streak murni + unit test
-│  └─ migrate-legacy.ts # pemetaan data LocalStorage lama (P1)
-└─ types/               # re-export tipe domain
+├─ app/api/            # Route Handlers (auth, projects, subjects, tasks, members, invites, streak, ws-token)
+├─ server/             # authz (requireMember), services, mappers (epoch ms ↔ ISO), jwt, password, http, realtime
+├─ db/                 # schema.ts (Drizzle), client.ts
+├─ lib/api/            # TaskCanvasApi: mock/ dan http/
+├─ lib/queries/        # hooks TanStack Query
+└─ components/         # ui, layout, project, board, streak, collab, ...
+worker-realtime/       # Durable Object ProjectRoom (WebSocket + presence + broadcast)
 ```
 
-## Arsitektur layer API
+**Pola realtime (terverifikasi dengan `wrangler dev`):** kelas DO dideklarasikan di Worker
+terpisah `taskcanvas-realtime` lewat field deklaratif `exports`; Worker utama (OpenNext) memakai
+binding lintas-script `PROJECT_ROOM` (`script_name`). Mutasi REST = sumber kebenaran (D1); setelah
+sukses, route handler menyiarkan event ke DO via stub. Klien membuka WebSocket langsung ke Worker
+realtime memakai token berumur pendek yang diterbitkan `/api/projects/:id/ws-token` setelah sesi dan
+keanggotaan diverifikasi. Detail & alasan deviasi: `docs/DECISIONS.md` (P2-A, P2-D).
 
-Komponen hanya memakai hooks di `src/lib/queries/` yang memanggil `api` dari
-`src/lib/api`. `NEXT_PUBLIC_API_MODE=mock` memakai implementasi mock. Di Fase 2,
-implementasi `http/` akan ditambahkan tanpa mengubah komponen.
+## Deploy ke Cloudflare
 
-Variabel opsional: `NEXT_PUBLIC_MOCK_ERROR_RATE` (0–1) untuk menyuntikkan error acak
-guna menguji state gagal.
+1. **Buat D1 & terapkan migrasi**
+   ```bash
+   npx wrangler d1 create taskcanvas-db      # salin database_id ke wrangler.jsonc
+   pnpm db:migrate:remote
+   ```
+2. **Set secret** untuk kedua Worker (nilai sama):
+   ```bash
+   npx wrangler secret put JWT_SECRET
+   npx wrangler secret put JWT_SECRET --config worker-realtime/wrangler.jsonc
+   ```
+3. **Deploy Worker realtime** (Durable Object) lebih dulu:
+   ```bash
+   pnpm worker:deploy    # nama: taskcanvas-realtime
+   ```
+4. **Set `REALTIME_WS_URL`** di `wrangler.jsonc` ke URL Worker realtime (mis.
+   `wss://taskcanvas-realtime.<subdomain>.workers.dev`).
+5. **Deploy Worker utama:**
+   ```bash
+   pnpm deploy           # OpenNext build + deploy
+   ```
+
+Catatan: `database_id` di `wrangler.jsonc` awalnya placeholder untuk dev lokal — wajib diganti
+sebelum migrasi/deploy remote. Aplikasi tidak memakai ISR/R2 cache (halaman dinamis).
 
 ## PWA
 
-Manifest di `public/manifest.webmanifest`, service worker di `public/sw.js`. Service
-worker hanya didaftarkan pada build produksi (`pnpm build && pnpm start`).
+Manifest `public/manifest.webmanifest`, service worker `public/sw.js` (aktif pada build produksi).
