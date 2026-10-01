@@ -46,7 +46,12 @@ pnpm dev                          # terminal 2: Next.js di :3000
 Akun: daftar lewat `/register`, atau login dengan kredensial yang kamu buat.
 Ingin mode mock tanpa backend? Set `NEXT_PUBLIC_API_MODE=mock`.
 
-Variabel: `REALTIME_WS_URL` (wrangler.jsonc) menunjuk Worker realtime; dev = `ws://localhost:8788`.
+Variabel: `REALTIME_WS_URL` (wrangler.jsonc) menunjuk Worker realtime; dev = `ws://localhost:8788`
+(lihat `.dev.vars` yang meng-override nilai produksi saat lokal).
+
+> Catatan: setiap kali `database_id` di `wrangler.jsonc` berubah (mis. dari placeholder ke UUID
+> asli setelah `wrangler d1 create`), state D1 **lokal** ikut ter-reset karena Miniflare memetakan
+> database per-id. Jalankan ulang `pnpm db:migrate:local`.
 
 ## Skrip
 

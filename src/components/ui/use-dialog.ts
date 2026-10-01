@@ -4,6 +4,11 @@ import { useEffect, useRef } from "react";
 
 export function useDialog(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -18,24 +23,29 @@ export function useDialog(open: boolean, onClose: () => void) {
         ) ?? [],
       ).filter((el) => el.offsetParent !== null);
 
-    const first = getFocusable()[0];
-    (first ?? node)?.focus();
+    const focusable = getFocusable();
+    const preferred =
+      node?.querySelector<HTMLElement>(
+        "[data-autofocus], input:not([type='hidden']), textarea, select",
+      ) ?? null;
+    const target = preferred ?? focusable[0] ?? node;
+    target?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab") return;
 
-      const focusable = getFocusable();
-      if (focusable.length === 0) {
+      const items = getFocusable();
+      if (items.length === 0) {
         event.preventDefault();
         return;
       }
-      const firstEl = focusable[0]!;
-      const lastEl = focusable[focusable.length - 1]!;
+      const firstEl = items[0]!;
+      const lastEl = items[items.length - 1]!;
       if (event.shiftKey && document.activeElement === firstEl) {
         event.preventDefault();
         lastEl.focus();
@@ -54,7 +64,7 @@ export function useDialog(open: boolean, onClose: () => void) {
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return ref;
 }
