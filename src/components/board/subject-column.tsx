@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CheckCheck, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
 import { TaskItem } from "./task-item";
 import { ActionMenu } from "@/components/ui/action-menu";
@@ -141,6 +143,8 @@ export function SubjectColumn({
   const clearCompleted = useClearCompleted(projectId);
   const { toast } = useToast();
 
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({ id: `col:${subject.id}` });
+
   useEffect(() => {
     if (editingName) nameRef.current?.focus();
   }, [editingName]);
@@ -169,7 +173,7 @@ export function SubjectColumn({
     <section
       aria-label={`Subject ${subject.name}`}
       className={cn(
-        "flex h-full w-[300px] shrink-0 snap-start flex-col rounded-card border border-border bg-surface-2/50 shadow-soft",
+        "group flex h-full w-[300px] shrink-0 snap-start flex-col rounded-card border border-border bg-surface-2/50 shadow-soft",
         className,
       )}
     >
@@ -251,7 +255,13 @@ export function SubjectColumn({
         />
       </div>
 
-      <div className="flex-1 space-y-1.5 overflow-y-auto px-2.5 py-2.5">
+      <div
+        ref={setDroppableRef}
+        className={cn(
+          "flex-1 space-y-1.5 overflow-y-auto px-2.5 py-2.5 transition-colors",
+          isOver && "bg-brand-50/60 dark:bg-brand-950/20",
+        )}
+      >
         {filtered.length === 0 ? (
           <div className="px-1 py-4">
             <p className="text-center text-xs text-muted">
@@ -263,23 +273,29 @@ export function SubjectColumn({
             </p>
           </div>
         ) : (
-          filtered.map((task) => {
-            const assignee = task.assigneeId
-              ? members.find((member) => member.userId === task.assigneeId)
-              : undefined;
-            return (
-              <TaskItem
-                key={task.id}
-                task={task}
-                projectId={projectId}
-                timezone={timezone}
-                canEdit={canEdit}
-                assigneeName={assignee?.name}
-                assigneeColor={assignee?.avatarColor}
-                onOpenDetail={onOpenDetail}
-              />
-            );
-          })
+          <SortableContext
+            items={filtered.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {filtered.map((task) => {
+              const assignee = task.assigneeId
+                ? members.find((member) => member.userId === task.assigneeId)
+                : undefined;
+              return (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  projectId={projectId}
+                  timezone={timezone}
+                  canEdit={canEdit}
+                  draggable={canEdit && filter === "all"}
+                  assigneeName={assignee?.name}
+                  assigneeColor={assignee?.avatarColor}
+                  onOpenDetail={onOpenDetail}
+                />
+              );
+            })}
+          </SortableContext>
         )}
       </div>
 

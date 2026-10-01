@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Archive,
-  CalendarDays,
-  GripVertical,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Archive, CalendarDays, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { Avatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,10 +30,10 @@ export interface TaskItemProps {
   projectId: string;
   timezone: string;
   canEdit: boolean;
+  draggable?: boolean;
   assigneeName?: string | null;
   assigneeColor?: string | null;
   onOpenDetail: (task: Task) => void;
-  isDragging?: boolean;
 }
 
 export function TaskItem({
@@ -45,10 +41,10 @@ export function TaskItem({
   projectId,
   timezone,
   canEdit,
+  draggable = false,
   assigneeName,
   assigneeColor,
   onOpenDetail,
-  isDragging = false,
 }: TaskItemProps) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
@@ -57,6 +53,11 @@ export function TaskItem({
   const updateTask = useUpdateTask(projectId);
   const deleteTask = useDeleteTask(projectId);
   const { toast } = useToast();
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+    disabled: !canEdit || !draggable,
+  });
 
   if (task.title !== syncedTitle) {
     setSyncedTitle(task.title);
@@ -85,19 +86,24 @@ export function TaskItem({
 
   return (
     <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "group relative flex items-start gap-2.5 rounded-xl border border-transparent bg-surface px-2.5 py-2 transition-colors hover:border-border hover:bg-surface-2/60",
         task.isDone && "opacity-70",
-        isDragging && "shadow-card ring-2 ring-brand-400",
+        isDragging && "z-10 shadow-card ring-2 ring-brand-400",
       )}
     >
-      {canEdit ? (
-        <span
-          className="mt-1 hidden cursor-grab touch-none text-muted/50 group-hover:block"
-          aria-hidden
+      {canEdit && draggable ? (
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`Geser task ${task.title}`}
+          className="mt-1 hidden cursor-grab touch-none text-muted/50 hover:text-muted focus-visible:block group-hover:block"
         >
-          <GripVertical className="size-4" />
-        </span>
+          <GripVertical className="size-4" aria-hidden />
+        </button>
       ) : null}
 
       <div className="mt-0.5">
