@@ -78,6 +78,36 @@ Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md
 
 ---
 
+## 2026-10-01 — Fase 1 (implementasi)
+
+### F1. Endpoint pendukung UI di luar daftar Bagian 11
+- **Keputusan:** interface `TaskCanvasApi` menambah `tasks.listArchived()` dan `tasks.listDueToday()`.
+- **Alasan:** halaman Archive dan panel "jatuh tempo hari ini" di My Space memerlukan daftar lintas
+  project; tidak cukup dari endpoint yang ada.
+- **Dampak:** Fase 2 perlu menambah route (mis. `GET /tasks?archived=true` dan `GET /tasks?due=today`)
+  atau ekuivalen. Data tetap melewati authorization keanggotaan.
+
+### F2. Font judul dipilih lewat `data-title-font` + CSS variable
+- **Keputusan:** `--font-title` diarahkan ke salah satu dari `--font-handwritten` / `--font-modern` /
+  `--font-serif` melalui atribut `data-title-font` pada `<html>`.
+- **Alasan:** memungkinkan pergantian font instan tanpa re-render besar, dan mendukung bootstrap
+  anti-flash dari `public/theme-init.js`.
+- **Dampak:** semua judul memakai utility `font-title`.
+
+### F3. Bootstrap tema tanpa inline script
+- **Keputusan:** skrip anti-flash dimuat dari `public/theme-init.js` via `next/script`
+  (`beforeInteractive`).
+- **Alasan:** PRD menghindari `dangerouslySetInnerHTML`.
+- **Dampak:** preferensi tema/font dibaca dari `localStorage` kunci `tc-settings` sebelum paint.
+
+### F4. Command palette & confetti target harian diimplementasikan (P1)
+- **Keputusan:** `Cmd/Ctrl+K` command palette dan confetti saat target harian tercapai disertakan.
+- **Alasan:** keduanya P1 di PRD 7.10 dan meningkatkan daya tarik produk.
+- **Dampak:** confetti menghormati `prefers-reduced-motion` (via `MotionConfig reducedMotion="user"`)
+  dan hanya muncul sekali per hari.
+
+---
+
 ## Pertanyaan terbuka
 - Q1. Default project view — asumsi **Board**.
 - Q2. Login Google — asumsi **tidak** di v2.

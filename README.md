@@ -1,86 +1,91 @@
-# TaskCanvas — Final Project LBE RPL 2026
+# TaskCanvas v2
 
-TaskCanvas adalah aplikasi To Do List berbasis web yang dikembangkan sebagai Final Project LBE Lab RPL ITS 2026.
+TaskCanvas adalah aplikasi manajemen tugas berbasis canvas visual dengan struktur
+**Project → Subject → Task**. Versi ini merombak aplikasi HTML/CSS/JS lama (ada di
+`legacy-v1/`) menjadi aplikasi full-stack **Next.js + Cloudflare**.
 
-Project ini dikembangkan secara kolaboratif menggunakan workflow Git dan GitHub dengan struktur branch:
+> Dokumen sumber kebenaran: [`docs/PRD.md`](docs/PRD.md). Rencana kerja: [`docs/PLAN.md`](docs/PLAN.md).
+> Catatan deviasi & asumsi: [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
-`main → dev → feature/*`
+## Status
 
-Aplikasi dibuat menggunakan HTML, CSS, dan JavaScript murni tanpa framework.
+- **Fase 1 — Frontend dengan data mock: selesai.** Semua halaman P0 berfungsi dengan data mock
+  yang persisten di `localStorage`, tampilan Bahasa Indonesia, dark mode, dan 3 gaya font judul.
+- **Fase 2 — Backend Cloudflare: belum dikerjakan** (menunggu konfirmasi).
 
----
+## Stack
 
-## Fitur
+| Layer | Teknologi |
+|---|---|
+| Framework | Next.js 16 (App Router) + React 19 + TypeScript strict |
+| Styling | Tailwind CSS 4 (CSS-first `@theme`) |
+| Server state | TanStack Query 5 |
+| UI state | Zustand 5 |
+| Validasi | Zod 4 |
+| Drag & drop | `@dnd-kit` |
+| Ikon/animasi | `lucide-react`, `motion` |
+| Tanggal | `date-fns` + `date-fns-tz` |
+| Test | Vitest |
 
-### Fitur Wajib
+## Prasyarat
 
-Project ini mengimplementasikan seluruh 6 fitur wajib dari Final Project:
+- Node.js >= 20.11 (diuji pada Node 22)
+- pnpm 10 (`npm i -g pnpm` bila belum ada)
 
-1. **Mark as Complete**
-   - Menandai task sebagai selesai.
-   - Task yang selesai ditampilkan dengan status completed.
+## Menjalankan
 
-2. **Edit Task**
-   - Mengubah isi task yang sudah dibuat.
+```bash
+pnpm install
+cp .env.example .env.local   # opsional; default sudah mock
+pnpm dev
+```
 
-3. **Filter Task**
-   - Menampilkan seluruh task.
-   - Menampilkan task yang masih aktif.
-   - Menampilkan task yang sudah selesai.
+Buka http://localhost:3000. Login dengan akun demo:
 
-4. **LocalStorage**
-   - Data task disimpan menggunakan browser LocalStorage.
-   - Data tetap tersedia setelah halaman di-refresh.
+- Email: `demo@taskcanvas.app`
+- Password: bebas, minimal 8 karakter
 
-5. **Task Counter**
-   - Menampilkan jumlah task yang masih belum selesai.
+Data mock disimpan di `localStorage` (kunci `tc-mock-db-v1`). Untuk mereset data,
+hapus kunci tersebut dari DevTools, atau panggil `resetDb()` dari `src/lib/api/mock`.
 
-6. **Clear Completed**
-   - Menghapus seluruh task yang sudah selesai sekaligus.
+## Skrip
 
-### Fitur Tambahan
+| Skrip | Fungsi |
+|---|---|
+| `pnpm dev` | Jalankan Next.js dev server |
+| `pnpm build` | Build produksi |
+| `pnpm start` | Jalankan hasil build |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` | ESLint |
+| `pnpm test` | Unit test (Vitest) |
+| `pnpm format` | Prettier |
 
-Selain fitur wajib, project juga memiliki pengembangan tambahan pada tampilan dan organisasi task:
+## Struktur singkat
 
-- Project management
-- Project-based navigation
-- Subject/section organization
-- Archive Project
-- Sidebar navigation
-- Responsive interface
-- Interactive project cards
-- Excalidraw-inspired visual design
+```
+src/
+├─ app/                 # route groups (auth) & (app), API nanti di src/app/api
+├─ components/          # ui, layout, project, board, streak, collab, settings, archive, dashboard
+├─ lib/
+│  ├─ api/              # interface TaskCanvasApi + mock (http menyusul di Fase 2)
+│  ├─ queries/          # hooks TanStack Query
+│  ├─ schemas/          # Zod (sumber tipe, dipakai FE & BE)
+│  ├─ stores/           # Zustand
+│  ├─ streak.ts         # engine streak murni + unit test
+│  └─ migrate-legacy.ts # pemetaan data LocalStorage lama (P1)
+└─ types/               # re-export tipe domain
+```
 
-> Fitur tambahan di atas hanya dicantumkan apabila sudah tersedia pada branch `main` versi final.
+## Arsitektur layer API
 
----
+Komponen hanya memakai hooks di `src/lib/queries/` yang memanggil `api` dari
+`src/lib/api`. `NEXT_PUBLIC_API_MODE=mock` memakai implementasi mock. Di Fase 2,
+implementasi `http/` akan ditambahkan tanpa mengubah komponen.
 
-## 🛠️ Teknologi
+Variabel opsional: `NEXT_PUBLIC_MOCK_ERROR_RATE` (0–1) untuk menyuntikkan error acak
+guna menguji state gagal.
 
-Project ini menggunakan:
+## PWA
 
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- LocalStorage
-- Git
-- GitHub
-
-Tidak menggunakan framework frontend seperti React, Vue, atau Bootstrap.
-
----
-
-## 📁 Struktur Project
-
-```text
-Kelompok-2/
-│
-├── src/
-│   ├── index.html
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       └── app.js
-│
-├── LICENSE
-└── README.md
+Manifest di `public/manifest.webmanifest`, service worker di `public/sw.js`. Service
+worker hanya didaftarkan pada build produksi (`pnpm build && pnpm start`).
