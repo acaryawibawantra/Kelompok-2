@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 import { Caveat, Inter, Lora, Plus_Jakarta_Sans } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -63,7 +64,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <Script src="/theme-init.js" strategy="beforeInteractive" />
       </head>
-      <body className="min-h-dvh bg-canvas text-foreground antialiased">{children}</body>
+      <body className="min-h-dvh bg-canvas text-foreground antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
