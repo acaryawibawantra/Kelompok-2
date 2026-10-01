@@ -15,7 +15,7 @@
     {
       "binding": "DB",
       "database_name": "taskcanvas-db",
-      "database_id": "local-placeholder",
+      "database_id": "b0c21a7e-3ed4-4fa5-971a-103a90ba1317",
       "migrations_dir": "drizzle/migrations"
     }
   ],
@@ -29,7 +29,7 @@
     ]
   },
   "vars": {
-    "APP_URL": "http://localhost:3000",
-    "REALTIME_WS_URL": "wss://taskcanvas-realtime.YOUR-SUBDOMAIN.workers.dev"
+    "APP_URL": "https://taskcanvas.exposure-backend.workers.dev",
+    "REALTIME_WS_URL": "wss://taskcanvas-realtime.exposure-backend.workers.dev"
   }
 }
