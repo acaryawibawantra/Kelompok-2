@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { ToastProvider } from "@/components/ui/toast";
 import { ThemeManager } from "@/components/layout/theme-manager";
+import { PwaRegister } from "@/components/pwa-register";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeManager />
+      <PwaRegister />
       <MotionConfig reducedMotion="user">
         <ToastProvider>{children}</ToastProvider>
       </MotionConfig>

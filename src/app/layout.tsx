@@ -37,6 +37,14 @@ export const metadata: Metadata = {
   description:
     "TaskCanvas — kelola project, subject, dan task dalam satu canvas visual. Streak harian, target, dan kolaborasi.",
   applicationName: "TaskCanvas",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
   appleWebApp: {
     capable: true,
     title: "TaskCanvas",
