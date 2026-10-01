@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useSettingsStore } from "@/lib/stores/settings-store";
-import type { LoginInput, RegisterInput, UpdateMeInput } from "@/types";
+import type { LoginInput, RegisterInput, UpdateMeInput, User } from "@/types";
 import { queryKeys } from "./keys";
 
 export function useMe() {
@@ -53,6 +53,22 @@ export function useUpdateMe() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: UpdateMeInput) => api.auth.updateMe(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.me });
+      const previous = queryClient.getQueryData<User>(queryKeys.me);
+      if (previous) {
+        queryClient.setQueryData<User>(queryKeys.me, {
+          ...previous,
+          name: input.name ?? previous.name,
+          timezone: input.timezone ?? previous.timezone,
+          settings: { ...previous.settings, ...(input.settings ?? {}) },
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKeys.me, context.previous);
+    },
     onSuccess: (user) => {
       queryClient.setQueryData(queryKeys.me, user);
       useSettingsStore.getState().hydrateFromUser(user.settings);
