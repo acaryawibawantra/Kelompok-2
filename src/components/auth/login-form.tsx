@@ -12,6 +12,12 @@ import { useLogin, useMe } from "@/lib/queries";
 import { loginSchema } from "@/lib/schemas";
 import { isApiError } from "@/lib/api";
 import { zodFieldErrors } from "@/lib/forms";
+import { safeRedirect } from "@/lib/utils";
+
+function redirectTarget(): string {
+  if (typeof window === "undefined") return "/";
+  return safeRedirect(new URLSearchParams(window.location.search).get("redirect"));
+}
 
 export function LoginForm() {
   const { data: user, isLoading } = useMe();
@@ -25,7 +31,7 @@ export function LoginForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!isLoading && user) router.replace("/");
+    if (!isLoading && user) router.replace(redirectTarget());
   }, [isLoading, user, router]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -39,7 +45,7 @@ export function LoginForm() {
     try {
       await login.mutateAsync(parsed.data);
       toast({ title: "Selamat datang kembali!", tone: "success" });
-      router.replace("/");
+      router.replace(redirectTarget());
     } catch (error) {
       if (isApiError(error)) {
         setErrors(error.fields ?? {});
@@ -114,7 +120,14 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-muted">
         Belum punya akun?{" "}
-        <Link href="/register" className="font-medium text-brand-600 hover:underline">
+        <Link
+          href="/register"
+          onClick={(event) => {
+            event.preventDefault();
+            router.push(`/register${window.location.search}`);
+          }}
+          className="font-medium text-brand-600 hover:underline"
+        >
           Daftar sekarang
         </Link>
       </p>
