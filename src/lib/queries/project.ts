@@ -117,6 +117,7 @@ export function useUpdateTask(projectId: string) {
       void queryClient.invalidateQueries({ queryKey: key });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.streak });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.archivedTasks });
     },
   });
 }
@@ -128,6 +129,7 @@ export function useDeleteTask(projectId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.archivedTasks });
     },
   });
 }
