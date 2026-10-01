@@ -46,7 +46,7 @@ export function Header() {
           {crumbs.map((crumb, index) => (
             <li key={crumb.href} className="flex min-w-0 items-center gap-1.5">
               {index > 0 ? (
-                <span className="text-muted/60" aria-hidden>
+                <span className="hidden text-muted/60 sm:inline" aria-hidden>
                   /
                 </span>
               ) : null}
