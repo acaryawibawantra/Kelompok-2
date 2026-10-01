@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+coverage
+legacy-v1
+pnpm-lock.yaml
+public/sw.js
+public/manifest.webmanifest
+*.md

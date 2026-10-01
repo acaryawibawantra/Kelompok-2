@@ -1,0 +1,4 @@
+NEXTJS_ENV=development
+# Fase 2
+JWT_SECRET=change-me-in-local-dev
+NEXT_PUBLIC_API_MODE=mock

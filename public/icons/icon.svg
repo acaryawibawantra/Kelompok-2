@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- TaskCanvas app icon: kanvas indigo dengan checklist -->
+  <rect width="512" height="512" rx="112" fill="#5B5CE2"/>
+  <g stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Baris 1: centang -->
+    <path d="M118 196 l34 34 60 -70"/>
+    <line x1="256" y1="196" x2="398" y2="196"/>
+    <!-- Baris 2: titik -->
+    <circle cx="152" cy="296" r="14" fill="#FFFFFF" stroke="none"/>
+    <line x1="256" y1="296" x2="398" y2="296"/>
+    <!-- Baris 3: titik -->
+    <circle cx="152" cy="396" r="14" fill="#FFFFFF" stroke="none"/>
+    <line x1="256" y1="396" x2="398" y2="396"/>
+  </g>
+</svg>
