@@ -40,7 +40,6 @@ yarn-error.log*
 # cloudflare / opennext (Fase 2)
 /.open-next/
 /.wrangler/
-cloudflare-env.d.ts
 worker-realtime/.wrangler/
 worker-realtime/.open-next/
 
