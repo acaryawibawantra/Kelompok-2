@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { StreakBadge } from "./streak-badge";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
@@ -28,6 +28,7 @@ function breadcrumbFor(pathname: string): { label: string; href: string }[] {
 export function Header() {
   const pathname = usePathname();
   const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
+  const setCommandOpen = useUiStore((state) => state.setCommandOpen);
   const crumbs = breadcrumbFor(pathname);
 
   return (
@@ -68,6 +69,26 @@ export function Header() {
       </nav>
 
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setCommandOpen(true)}
+          aria-label="Cari project atau aksi"
+          className="hidden h-9 items-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm text-muted transition-colors hover:border-brand-300 hover:text-foreground md:flex"
+        >
+          <Search className="size-4" aria-hidden />
+          <span className="w-32 text-left">Cari…</span>
+          <kbd className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[10px]">
+            ⌘K
+          </kbd>
+        </button>
+        <button
+          type="button"
+          onClick={() => setCommandOpen(true)}
+          aria-label="Cari"
+          className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground md:hidden"
+        >
+          <Search className="size-5" aria-hidden />
+        </button>
         <StreakBadge />
         <ThemeToggle className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground" />
         <UserMenu />
