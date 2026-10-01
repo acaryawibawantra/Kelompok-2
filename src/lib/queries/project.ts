@@ -19,6 +19,15 @@ export function useProject(id: string) {
   });
 }
 
+export function useProjectMembers(projectId: string) {
+  return useQuery({
+    queryKey: [...queryKeys.project(projectId), "members"] as const,
+    queryFn: () => api.members.list(projectId),
+    enabled: Boolean(projectId),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateSubject(projectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
