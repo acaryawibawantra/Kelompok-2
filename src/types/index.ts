@@ -21,6 +21,8 @@ export type {
   Task,
   CreateTaskInput,
   UpdateTaskInput,
+  ArchivedTask,
+  DueTask,
 } from "@/lib/schemas/task";
 export type { Role, Member, UpdateMemberRoleInput } from "@/lib/schemas/member";
 export type {

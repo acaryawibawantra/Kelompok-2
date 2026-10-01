@@ -24,13 +24,8 @@ import { ApiError } from "@/lib/api/errors";
 import { computeStreak, localDay } from "@/lib/streak";
 import { colorFromId } from "@/lib/utils";
 import { positionBetween } from "@/lib/ordering";
-import type {
-  ArchivedTask,
-  DueTask,
-  ProjectDetail,
-  TaskCanvasApi,
-  TaskMutationResult,
-} from "@/lib/api/types";
+import type { ArchivedTask, DueTask } from "@/types";
+import type { ProjectDetail, TaskCanvasApi, TaskMutationResult } from "@/lib/api/types";
 import {
   getDb,
   requireUser,

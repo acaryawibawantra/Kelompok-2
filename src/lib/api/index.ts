@@ -6,10 +6,5 @@ export const apiMode = process.env.NEXT_PUBLIC_API_MODE === "http" ? "http" : "m
 export const api: TaskCanvasApi = mockApi;
 
 export { ApiError, isApiError } from "./errors";
-export type {
-  TaskCanvasApi,
-  ProjectDetail,
-  ArchivedTask,
-  DueTask,
-  TaskMutationResult,
-} from "./types";
+export type { TaskCanvasApi, ProjectDetail, TaskMutationResult } from "./types";
+export type { ArchivedTask, DueTask } from "@/types";

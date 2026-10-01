@@ -1,8 +1,10 @@
 import type {
+  ArchivedTask,
   CreateInviteInput,
   CreateProjectInput,
   CreateSubjectInput,
   CreateTaskInput,
+  DueTask,
   Invite,
   LoginInput,
   Member,
@@ -25,16 +27,6 @@ export interface ProjectDetail {
   subjects: Subject[];
   tasks: Task[];
   members: Member[];
-}
-
-export interface ArchivedTask extends Task {
-  projectName: string;
-  subjectName: string;
-}
-
-export interface DueTask extends Task {
-  projectName: string;
-  subjectName: string;
 }
 
 export interface TaskMutationResult {

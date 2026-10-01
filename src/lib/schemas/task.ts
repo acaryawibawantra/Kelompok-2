@@ -42,8 +42,15 @@ export const updateTaskSchema = z.object({
   isArchived: z.boolean().optional(),
 });
 
+export const taskWithContextSchema = taskSchema.extend({
+  projectName: z.string(),
+  subjectName: z.string(),
+});
+
 export type Priority = z.infer<typeof prioritySchema>;
 export type TaskFilter = z.infer<typeof taskFilterSchema>;
 export type Task = z.infer<typeof taskSchema>;
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+export type ArchivedTask = z.infer<typeof taskWithContextSchema>;
+export type DueTask = z.infer<typeof taskWithContextSchema>;

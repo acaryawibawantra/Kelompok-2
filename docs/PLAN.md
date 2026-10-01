@@ -378,7 +378,7 @@ Skema jadi **sumber tunggal tipe TS** (`z.infer`), diekspor ulang di `src/types/
 | `user.ts` | `registerSchema`, `loginSchema`, `updateMeSchema`, `userSettingsSchema`, `userSchema` |
 | `project.ts` | `createProjectSchema`, `updateProjectSchema`, `projectSchema`, `projectListQuerySchema` |
 | `subject.ts` | `createSubjectSchema`, `updateSubjectSchema`, `subjectSchema` |
-| `task.ts` | `createTaskSchema`, `updateTaskSchema`, `taskSchema`, `taskFilterSchema` |
+| `task.ts` | `createTaskSchema`, `updateTaskSchema`, `taskSchema`, `taskFilterSchema`, `taskWithContextSchema` |
 | `member.ts` | `memberSchema`, `updateMemberRoleSchema` |
 | `invite.ts` | `createInviteSchema`, `inviteSchema`, `joinInviteSchema` |
 | `streak.ts` | `streakSummarySchema` |
@@ -422,6 +422,32 @@ Aturan validasi kunci: password **min 8**; email lowercase+valid; `title` 1–20
 | POST | `/subjects/:id/tasks` | `{title,notes?,dueDate?,priority?,assigneeId?}` |
 | PATCH | `/tasks/:id` | jika `isDone` berubah → update `daily_activity` di batch sama, respons + `streak` |
 | DELETE | `/tasks/:id` | |
+| GET | `/tasks?archived=true` | daftar task terarsip lintas project yang boleh diakses user → `{data:ArchivedTask[]}` |
+| GET | `/tasks?due=today` | task belum selesai yang jatuh tempo hari ini (timezone user) → `{data:DueTask[]}` |
+
+Padanan untuk `tasks.listArchived()` dan `tasks.listDueToday()` di interface `TaskCanvasApi`, sehingga
+implementasi `http/` menutup **semua** method mock. Keduanya melewati `requireMember` untuk setiap
+project yang tersentuh, dan mengembalikan tipe turunan:
+
+```ts
+// src/lib/schemas/task.ts
+export const taskWithContextSchema = taskSchema.extend({
+  projectName: z.string(),
+  subjectName: z.string(),
+});
+export type ArchivedTask = z.infer<typeof taskWithContextSchema>;
+export type DueTask = z.infer<typeof taskWithContextSchema>;
+```
+
+`GET /tasks` memakai `tasksQuerySchema`:
+```ts
+export const tasksQuerySchema = z.object({
+  archived: z.coerce.boolean().optional(),
+  due: z.enum(["today"]).optional(),
+});
+```
+Respons dibungkus `{ data: ... }`; item divalidasi `taskWithContextSchema`. `archived=true` dan
+`due=today` saling eksklusif (400 bila keduanya).
 
 **Kolaborasi**
 | Method | Path | Keterangan |
