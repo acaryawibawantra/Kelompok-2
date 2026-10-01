@@ -16,7 +16,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply taskcanvas-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply taskcanvas-db --remote",
-    "worker:dev": "wrangler dev --config worker-realtime/wrangler.jsonc",
+    "worker:dev": "wrangler dev --config worker-realtime/wrangler.jsonc --port 8788",
     "worker:deploy": "wrangler deploy --config worker-realtime/wrangler.jsonc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc -p worker-realtime/tsconfig.json --noEmit",

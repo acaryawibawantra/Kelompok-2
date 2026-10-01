@@ -74,15 +74,19 @@ export async function updateSubject(
   return toSubject(rows[0]!);
 }
 
-export async function deleteSubject(user: User, subjectId: string): Promise<void> {
+export async function deleteSubject(user: User, subjectId: string): Promise<{ projectId: string }> {
   const db = getDb();
   const subject = await findSubject(subjectId);
   await requireMember(db, subject.projectId, user.id, "editor");
   await db.delete(subjects).where(eq(subjects.id, subjectId));
   await touchProject(subject.projectId);
+  return { projectId: subject.projectId };
 }
 
-export async function clearCompleted(user: User, subjectId: string): Promise<{ deleted: number }> {
+export async function clearCompleted(
+  user: User,
+  subjectId: string,
+): Promise<{ deleted: number; projectId: string }> {
   const db = getDb();
   const subject = await findSubject(subjectId);
   await requireMember(db, subject.projectId, user.id, "editor");
@@ -91,5 +95,5 @@ export async function clearCompleted(user: User, subjectId: string): Promise<{ d
     .where(and(eq(tasks.subjectId, subjectId), eq(tasks.isDone, true), eq(tasks.isArchived, false)))
     .returning({ id: tasks.id });
   await touchProject(subject.projectId);
-  return { deleted: removed.length };
+  return { deleted: removed.length, projectId: subject.projectId };
 }

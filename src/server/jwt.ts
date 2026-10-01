@@ -42,3 +42,26 @@ export function readSessionToken(request: Request): string | null {
   }
   return null;
 }
+
+export interface RealtimeClaims {
+  userId: string;
+  projectId: string;
+  name: string;
+  avatarColor: string;
+}
+
+export async function signRealtimeToken(
+  claims: RealtimeClaims,
+  secret: string,
+): Promise<string> {
+  return new SignJWT({
+    projectId: claims.projectId,
+    name: claims.name,
+    avatarColor: claims.avatarColor,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(claims.userId)
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign(key(secret));
+}

@@ -6,16 +6,19 @@ import type { Member } from "@/types";
 
 export function PresenceStack({
   members,
+  onlineIds,
   max = 5,
   className,
 }: {
   members: Member[];
+  onlineIds?: Set<string>;
   max?: number;
   className?: string;
 }) {
   const visible = members.slice(0, max);
   const overflow = members.length - visible.length;
-  const onlineCount = members.filter((member) => member.online).length;
+  const isOnline = (member: Member) => member.online === true || (onlineIds?.has(member.userId) ?? false);
+  const onlineCount = members.filter(isOnline).length;
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -23,7 +26,7 @@ export function PresenceStack({
         {visible.map((member) => (
           <span key={member.userId} className="relative">
             <Avatar name={member.name} color={member.avatarColor} size="sm" />
-            {member.online ? (
+            {isOnline(member) ? (
               <span
                 aria-hidden
                 className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-surface bg-emerald-500"

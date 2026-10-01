@@ -1,4 +1,5 @@
 import { createTaskSchema } from "@/lib/schemas";
+import { broadcast } from "@/server/realtime";
 import { assertSameOrigin, handleError, json, parseJson } from "@/server/http";
 import { requireUser } from "@/server/session";
 import { createTask } from "@/server/services/task-service";
@@ -14,7 +15,9 @@ export async function POST(
     const user = await requireUser(request);
     const { id } = await context.params;
     const input = await parseJson(request, createTaskSchema);
-    return json(await createTask(user, id, input), { status: 201 });
+    const task = await createTask(user, id, input);
+    await broadcast(task.projectId, { t: "task.created", task });
+    return json(task, { status: 201 });
   } catch (error) {
     return handleError(error);
   }

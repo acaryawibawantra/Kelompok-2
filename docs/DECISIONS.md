@@ -136,6 +136,24 @@ Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md
 - **Alasan:** pnpm 10 memblokir postinstall secara default; `wrangler dev` butuh binary workerd.
 - **Dampak:** `pnpm install` menjalankan postinstall yang diperlukan.
 
+### P2-D. Klien WebSocket terhubung langsung ke Worker realtime dengan token bertanda tangan
+- **Keputusan:** route handler Next (`/api/projects/:id/ws-token`) memverifikasi sesi + keanggotaan,
+  lalu menerbitkan JWT berumur pendek (klaim: `sub`, `projectId`, `name`, `avatarColor`). Klien
+  membuka WebSocket **langsung** ke Worker `taskcanvas-realtime` (`REALTIME_WS_URL`) membawa token;
+  DO memverifikasi tanda tangan sebelum menerima koneksi.
+- **Alasan:** Route Handler Next.js tidak dapat dengan andal meneruskan upgrade `101` ke Durable
+  Object. PRD 13.1 menyebut verifikasi sebelum meneruskan upgrade; verifikasi tetap dilakukan
+  server-side (saat menerbitkan token) dan DO memvalidasi token, sehingga otorisasi tetap terjaga.
+  PRD juga meminta memverifikasi pola di dokumentasi dan mencatat deviasi.
+- **Dampak:** perlu var `REALTIME_WS_URL` (dev: `ws://localhost:8788`, prod: URL Worker realtime).
+  Secret `JWT_SECRET` dibagi antara Worker utama dan Worker realtime.
+
+### P2-E. `member.changed` juga dipakai sebagai sinyal refetch struktural
+- **Keputusan:** aksi yang mengubah banyak task sekaligus (mis. `clear-completed`) menyiarkan
+  `{ t: "member.changed" }` sebagai sinyal agar klien lain me-refetch project.
+- **Alasan:** protokol (PRD 13.2) tidak punya event khusus untuk operasi massal.
+- **Dampak:** klien memperlakukan `member.changed` sebagai invalidasi penuh project.
+
 ---
 
 ## Pertanyaan terbuka

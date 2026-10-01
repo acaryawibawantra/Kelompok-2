@@ -1,4 +1,5 @@
 import { createSubjectSchema } from "@/lib/schemas";
+import { broadcast } from "@/server/realtime";
 import { assertSameOrigin, handleError, json, parseJson } from "@/server/http";
 import { requireUser } from "@/server/session";
 import { createSubject } from "@/server/services/subject-service";
@@ -14,7 +15,9 @@ export async function POST(
     const user = await requireUser(request);
     const { id } = await context.params;
     const input = await parseJson(request, createSubjectSchema);
-    return json(await createSubject(user, id, input), { status: 201 });
+    const subject = await createSubject(user, id, input);
+    await broadcast(subject.projectId, { t: "subject.created", subject });
+    return json(subject, { status: 201 });
   } catch (error) {
     return handleError(error);
   }

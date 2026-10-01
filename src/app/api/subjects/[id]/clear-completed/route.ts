@@ -1,3 +1,4 @@
+import { broadcast } from "@/server/realtime";
 import { assertSameOrigin, handleError, json } from "@/server/http";
 import { requireUser } from "@/server/session";
 import { clearCompleted } from "@/server/services/subject-service";
@@ -12,7 +13,9 @@ export async function POST(
     assertSameOrigin(request);
     const user = await requireUser(request);
     const { id } = await context.params;
-    return json(await clearCompleted(user, id));
+    const result = await clearCompleted(user, id);
+    await broadcast(result.projectId, { t: "member.changed" });
+    return json({ deleted: result.deleted });
   } catch (error) {
     return handleError(error);
   }

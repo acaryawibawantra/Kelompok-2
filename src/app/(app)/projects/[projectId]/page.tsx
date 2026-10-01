@@ -13,6 +13,7 @@ import { Button, buttonClass } from "@/components/ui/button";
 import { useProject } from "@/lib/queries";
 import { useProjectRole } from "@/components/board/use-project-role";
 import { useMe } from "@/lib/queries";
+import { useProjectRealtime } from "@/lib/realtime";
 import { useUiStore } from "@/lib/stores/ui-store";
 
 export default function ProjectPage() {
@@ -24,6 +25,8 @@ export default function ProjectPage() {
   const view = useUiStore((state) => state.boardView);
   const setBoardView = useUiStore((state) => state.setBoardView);
   const [shareOpen, setShareOpen] = useState(false);
+  const { presence } = useProjectRealtime(projectId);
+  const onlineIds = new Set(presence.map((entry) => entry.userId));
 
   const timezone = user?.timezone ?? "Asia/Jakarta";
 
@@ -64,6 +67,7 @@ export default function ProjectPage() {
         className="px-4 sm:px-6"
         project={data.project}
         members={data.members}
+        onlineIds={onlineIds}
         view={view}
         onViewChange={setBoardView}
         actions={

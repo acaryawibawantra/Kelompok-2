@@ -1,4 +1,5 @@
 import { updateMemberRoleSchema } from "@/lib/schemas";
+import { broadcast } from "@/server/realtime";
 import { assertSameOrigin, handleError, json, parseJson } from "@/server/http";
 import { requireUser } from "@/server/session";
 import { removeMember, updateMemberRole } from "@/server/services/collab-service";
@@ -13,7 +14,9 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
     const user = await requireUser(request);
     const { id, userId } = await context.params;
     const input = await parseJson(request, updateMemberRoleSchema);
-    return json(await updateMemberRole(user, id, userId, input));
+    const member = await updateMemberRole(user, id, userId, input);
+    await broadcast(id, { t: "member.changed" });
+    return json(member);
   } catch (error) {
     return handleError(error);
   }
@@ -25,6 +28,7 @@ export async function DELETE(request: Request, context: Context): Promise<Respon
     const user = await requireUser(request);
     const { id, userId } = await context.params;
     await removeMember(user, id, userId);
+    await broadcast(id, { t: "member.changed" });
     return json({ ok: true });
   } catch (error) {
     return handleError(error);

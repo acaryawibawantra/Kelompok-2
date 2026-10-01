@@ -1,7 +1,9 @@
 import { DurableObject } from "cloudflare:workers";
+import { jwtVerify } from "jose";
 
 export interface Env {
   PROJECT_ROOM: DurableObjectNamespace<ProjectRoom>;
+  JWT_SECRET: string;
 }
 
 export interface ServerEvent {
@@ -13,6 +15,28 @@ interface ConnectionState {
   userId: string;
   name: string;
   avatarColor: string;
+}
+
+function key(secret: string): Uint8Array {
+  return new TextEncoder().encode(secret);
+}
+
+async function verifyToken(
+  token: string,
+  secret: string,
+): Promise<{ userId: string; projectId: string; name: string; avatarColor: string } | null> {
+  try {
+    const { payload } = await jwtVerify(token, key(secret));
+    if (typeof payload.sub !== "string" || typeof payload.projectId !== "string") return null;
+    return {
+      userId: payload.sub,
+      projectId: payload.projectId,
+      name: typeof payload.name === "string" ? payload.name : "Anonim",
+      avatarColor: typeof payload.avatarColor === "string" ? payload.avatarColor : "#5b5ce2",
+    };
+  } catch {
+    return null;
+  }
 }
 
 export class ProjectRoom extends DurableObject<Env> {
@@ -36,12 +60,18 @@ export class ProjectRoom extends DurableObject<Env> {
     return new Response("ProjectRoom", { status: 200 });
   }
 
-  private handleWebSocket(request: Request): Response {
+  private async handleWebSocket(request: Request): Promise<Response> {
     const url = new URL(request.url);
+    const token = url.searchParams.get("token") ?? "";
+    const claims = await verifyToken(token, this.env.JWT_SECRET);
+    if (!claims) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     const user: ConnectionState = {
-      userId: url.searchParams.get("userId") ?? "unknown",
-      name: url.searchParams.get("name") ?? "Anonim",
-      avatarColor: url.searchParams.get("avatarColor") ?? "#5b5ce2",
+      userId: claims.userId,
+      name: claims.name,
+      avatarColor: claims.avatarColor,
     };
 
     const pair = new WebSocketPair();

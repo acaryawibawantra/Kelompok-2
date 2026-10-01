@@ -11,6 +11,7 @@ import type { Member, Project } from "@/types";
 export interface ProjectHeaderProps {
   project: Project;
   members: Member[];
+  onlineIds?: Set<string>;
   view: BoardView;
   onViewChange: (view: BoardView) => void;
   actions?: React.ReactNode;
@@ -20,6 +21,7 @@ export interface ProjectHeaderProps {
 export function ProjectHeader({
   project,
   members,
+  onlineIds,
   view,
   onViewChange,
   actions,
@@ -55,7 +57,7 @@ export function ProjectHeader({
 
         <div className="flex items-center gap-2">
           <div className="hidden sm:block">
-            <PresenceStack members={members} />
+            <PresenceStack members={members} onlineIds={onlineIds} />
           </div>
           {actions}
         </div>

@@ -174,12 +174,13 @@ export async function updateTask(
   return { task: toTask(rows[0]!), streak: await getStreak(user) };
 }
 
-export async function removeTask(user: User, taskId: string): Promise<void> {
+export async function removeTask(user: User, taskId: string): Promise<{ projectId: string }> {
   const db = getDb();
   const task = await findTask(taskId);
   await requireMember(db, task.projectId, user.id, "editor");
   await db.delete(tasks).where(eq(tasks.id, taskId));
   await touchProject(task.projectId);
+  return { projectId: task.projectId };
 }
 
 async function allowedProjectIds(userId: string): Promise<string[]> {
