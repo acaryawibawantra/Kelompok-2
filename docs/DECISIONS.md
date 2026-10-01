@@ -1,0 +1,74 @@
+# DECISIONS — Log Deviasi & Asumsi
+
+Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md`.
+
+---
+
+## 2026-10-01 — Langkah 0
+
+### D1. Wrangler memakai `wrangler.jsonc`, bukan `.toml`
+- **Keputusan:** konfigurasi Worker memakai `wrangler.jsonc`.
+- **Alasan:** dokumentasi resmi OpenNext Cloudflare (get-started) memakai `wrangler.jsonc` sebagai
+  default; JSONC mendukung komentar + `$schema`.
+- **Dampak:** PRD Bagian 14 menyebut "atau .toml sesuai default OpenNext terbaru" — ini mengikuti
+  dokumentasi. Tidak ada perubahan perilaku.
+
+### D2. DO lifecycle memakai field deklaratif `exports`
+- **Keputusan:** `worker-realtime/wrangler.jsonc` mendeklarasikan `ProjectRoom` lewat
+  `exports: { ProjectRoom: { type: "durable-object", storage: "sqlite" } }`.
+- **Alasan:** dokumentasi Cloudflare (diperbarui 2026-09-28) menyatakan `exports` menggantikan array
+  `migrations` lama dan merupakan cara deklaratif terbaru; SQLite storage direkomendasikan.
+- **Dampak:** berbeda dari contoh `migrations` di PRD Bagian 14. `exports` dan `migrations` saling
+  eksklusif; kita konsisten memakai `exports`.
+
+### D3. Drizzle dipin ke versi stable (0.45.3 / Kit 0.31.11)
+- **Keputusan:** memakai `drizzle-orm@0.45.3` dan `drizzle-kit@0.31.11` (stable), bukan `@rc`.
+- **Alasan:** docs get-started D1 menampilkan `@rc` (jalur v1 beta). Untuk proyek yang mengejar
+  stabilitas, jalur stable lebih aman.
+- **Dampak:** API skema/migrasi mengikuti v0.45. Jika ada kebutuhan fitur v1, ditinjau ulang di
+  Fase 2 dan dicatat di sini.
+
+### D4. Tailwind CSS v4 (CSS-first `@theme`)
+- **Keputusan:** memakai Tailwind **4.3.3** dengan konfigurasi `@theme` di `globals.css`.
+- **Alasan:** versi terbaru; skala brand 50–900 didefinisikan sebagai CSS variables.
+- **Dampak:** tidak ada `tailwind.config.js` klasik. `--font-title` dikelola via CSS variable +
+  `next/font`.
+
+### D5. Timestamp DB = epoch ms (integer)
+- **Keputusan:** `created_at`/`updated_at`/dll. memakai `integer({ mode: "timestamp_ms" })`.
+- **Alasan:** PRD Bagian 6 memberi kebebasan memilih salah satu asalkan konsisten; integer lebih
+  ringkas dan cepat diurutkan. Kolom tanggal harian tetap `text 'YYYY-MM-DD'`.
+- **Dampak:** konversi ke ISO hanya di lapisan API.
+
+### D6. ID memakai `nanoid`
+- **Keputusan:** semua ID = string `nanoid` (bukan ULID/UUID).
+- **Alasan:** PRD mengizinkan nanoid/ULID; nanoid ringan dan aman di Workers.
+- **Dampak:** tidak ada.
+
+### B1. Default project view = Board (kolom), Grid = toggle P1
+- **Alasan:** PRD 7.3 menyebut board sebagai "inti produk"; Grid ditandai P1.
+- **Dampak:** Fase 1 fokus membangun board lebih dulu.
+
+### B2. Auth email+password saja di v2
+- **Alasan:** login sosial masuk daftar non-tujuan PRD Bagian 2.
+- **Dampak:** tidak ada OAuth di v2.
+
+### B3. Nama produk sementara "✦ TaskCanvas"
+- **Alasan:** Q3 PRD belum dijawab; teks sementara sudah ditetapkan.
+- **Dampak:** mudah diganti saat nama final ditentukan.
+
+### B5. App lama dipindah ke `legacy-v1/`
+- **Alasan:** memberi ruang `src/` untuk Next.js sekaligus menyimpan referensi desain & fitur impor
+  LocalStorage (PRD Bagian 17).
+- **Dampak:** `legacy-v1/` tidak di-deploy; ikon disalin ke `public/icons/`.
+
+### B6. ISR/R2 cache tidak diaktifkan di Fase 2
+- **Alasan:** aplikasi board bersifat dinamis/per-user; caching halaman tidak banyak berguna.
+- **Dampak:** `open-next.config.ts` minimal. Dapat ditinjau ulang bila perlu.
+
+---
+
+## Pertanyaan terbuka
+- Q1. Default project view — asumsi **Board**.
+- Q2. Login Google — asumsi **tidak** di v2.
+- Q3. Nama/domain final & logo — sementara **"✦ TaskCanvas"**.
