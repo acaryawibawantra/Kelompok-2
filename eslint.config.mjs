@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "legacy-v1/**",
+    "public/**",
     ".open-next/**",
     "worker-realtime/**",
     "drizzle/**",

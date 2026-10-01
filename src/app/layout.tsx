@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import { Caveat, Inter, Lora, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -60,7 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${inter.variable} ${caveat.variable} ${jakarta.variable} ${lora.variable} h-full`}
     >
       <head>
-        <script src="/theme-init.js" />
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
       </head>
       <body className="min-h-dvh bg-canvas text-foreground antialiased">{children}</body>
     </html>
