@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "taskcanvas",
+  "name": "semangatbro",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -9,7 +9,7 @@
     "binding": "ASSETS"
   },
   "services": [
-    { "binding": "WORKER_SELF_REFERENCE", "service": "taskcanvas" }
+    { "binding": "WORKER_SELF_REFERENCE", "service": "semangatbro" }
   ],
   "d1_databases": [
     {
@@ -24,12 +24,12 @@
       {
         "name": "PROJECT_ROOM",
         "class_name": "ProjectRoom",
-        "script_name": "taskcanvas-realtime"
+        "script_name": "semangatbro-realtime"
       }
     ]
   },
   "vars": {
-    "APP_URL": "https://taskcanvas.exposure-backend.workers.dev",
-    "REALTIME_WS_URL": "wss://taskcanvas-realtime.exposure-backend.workers.dev"
+    "APP_URL": "https://semangatbro.exposure-backend.workers.dev",
+    "REALTIME_WS_URL": "wss://semangatbro-realtime.exposure-backend.workers.dev"
   }
 }
