@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
-import { Caveat, Inter, Lora, Plus_Jakarta_Sans } from "next/font/google";
+import { Caveat, Lora, Poppins } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const inter = Inter({
+const poppins = Poppins({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
   display: "swap",
 });
@@ -14,12 +15,6 @@ const inter = Inter({
 const caveat = Caveat({
   subsets: ["latin"],
   variable: "--font-handwritten",
-  display: "swap",
-});
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-modern",
   display: "swap",
 });
 
@@ -67,12 +62,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${inter.variable} ${caveat.variable} ${jakarta.variable} ${lora.variable} h-full`}
+      className={`${poppins.variable} ${caveat.variable} ${lora.variable} h-full`}
     >
       <head>
         <Script src="/theme-init.js" strategy="beforeInteractive" />
       </head>
-      <body className="min-h-dvh bg-canvas text-foreground antialiased">
+      <body className="bg-canvas text-foreground min-h-dvh antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

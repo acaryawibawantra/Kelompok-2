@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Archive,
+  CalendarDays,
   Flame,
   FolderKanban,
   LayoutGrid,
@@ -31,6 +32,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "My Space", icon: LayoutGrid },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/archive", label: "Archive", icon: Archive },
   { href: "/streak", label: "Streak", icon: Flame },
   { href: "/invites", label: "Undangan", icon: Mail },
@@ -62,7 +64,7 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
             type="button"
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Lebarkan sidebar" : "Ringkas sidebar"}
-            className="hidden size-8 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground lg:grid"
+            className="text-muted hover:bg-surface-2 hover:text-foreground hidden size-8 place-items-center rounded-lg lg:grid"
           >
             {collapsed ? (
               <PanelLeftOpen className="size-4" aria-hidden />
@@ -74,7 +76,7 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
             type="button"
             onClick={() => setMobileNavOpen(false)}
             aria-label="Tutup menu"
-            className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground lg:hidden"
+            className="text-muted hover:bg-surface-2 hover:text-foreground grid size-8 place-items-center rounded-lg lg:hidden"
           >
             <X className="size-4" aria-hidden />
           </button>
@@ -103,7 +105,7 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
               <Icon className="size-4.5 shrink-0" aria-hidden />
               {!collapsed ? <span>{item.label}</span> : null}
               {!collapsed && item.href === "/invites" && pendingInvites > 0 ? (
-                <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-semibold text-white">
+                <span className="bg-brand-600 ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-xs font-semibold text-white">
                   {pendingInvites}
                 </span>
               ) : null}
@@ -115,11 +117,11 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
       {!collapsed ? (
         <div className="mt-4 flex min-h-0 flex-1 flex-col">
           <div className="flex items-center justify-between px-2 pb-1">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+            <span className="text-muted inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
               <FolderKanban className="size-3.5" aria-hidden />
               Projects
             </span>
-            <span className="text-xs text-muted/80">{projects.length}</span>
+            <span className="text-muted/80 text-xs">{projects.length}</span>
           </div>
           <div className="no-scrollbar -mx-1 flex-1 overflow-y-auto px-1">
             {projectsQuery.isLoading ? (
@@ -129,7 +131,7 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
                 <Skeleton className="h-8 w-4/6" />
               </div>
             ) : projects.length === 0 ? (
-              <p className="px-2 py-1 text-sm text-muted">Belum ada project.</p>
+              <p className="text-muted px-2 py-1 text-sm">Belum ada project.</p>
             ) : (
               <ul className="flex flex-col gap-0.5">
                 {projects.map((project) => {
@@ -142,7 +144,7 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
                         className={cn(
                           "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
                           active
-                            ? "bg-surface-2 font-medium text-foreground"
+                            ? "bg-surface-2 text-foreground font-medium"
                             : "text-muted hover:bg-surface-2 hover:text-foreground",
                         )}
                       >
@@ -185,19 +187,24 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
             type="button"
             onClick={() => setNewProjectOpen(true)}
             aria-label="Buat project baru"
-            className="grid size-9 place-items-center rounded-xl bg-brand-600 text-white shadow-soft hover:bg-brand-700"
+            className="bg-brand-600 shadow-soft hover:bg-brand-700 grid size-9 place-items-center rounded-xl text-white"
           >
             <Plus className="size-4" aria-hidden />
           </button>
         </div>
       )}
 
-      <div className={cn("mt-auto flex items-center gap-3 rounded-xl p-2", collapsed && "justify-center")}>
+      <div
+        className={cn(
+          "mt-auto flex items-center gap-3 rounded-xl p-2",
+          collapsed && "justify-center",
+        )}
+      >
         <UserMenu />
         {!collapsed ? (
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">Profil</p>
-            <Link href="/settings" className="text-xs text-muted hover:text-foreground">
+            <p className="text-foreground truncate text-sm font-medium">Profil</p>
+            <Link href="/settings" className="text-muted hover:text-foreground text-xs">
               Pengaturan
             </Link>
           </div>
@@ -216,7 +223,7 @@ export function Sidebar() {
     <>
       <aside
         className={cn(
-          "sticky top-0 hidden h-dvh shrink-0 border-r border-border bg-surface transition-[width] duration-200 lg:block",
+          "border-border bg-surface sticky top-0 hidden h-dvh shrink-0 border-r transition-[width] duration-200 lg:block",
           collapsed ? "w-20" : "w-64",
         )}
       >
@@ -231,7 +238,7 @@ export function Sidebar() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="relative h-full w-72 max-w-[85vw] border-r border-border bg-surface shadow-pop">
+          <div className="border-border bg-surface shadow-pop relative h-full w-72 max-w-[85vw] border-r">
             <SidebarContent />
           </div>
         </div>

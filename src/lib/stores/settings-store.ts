@@ -22,7 +22,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       theme: "system",
-      titleFont: "handwritten",
+      titleFont: "modern",
       dailyGoal: 3,
       setTheme: (theme) => set({ theme }),
       setTitleFont: (titleFont) => set({ titleFont }),

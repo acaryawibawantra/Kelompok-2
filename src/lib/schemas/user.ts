@@ -5,7 +5,7 @@ export const titleFontSchema = z.enum(["handwritten", "modern", "serif"]);
 export const themeModeSchema = z.enum(["light", "dark", "system"]);
 
 export const userSettingsSchema = z.object({
-  titleFont: titleFontSchema.default("handwritten"),
+  titleFont: titleFontSchema.default("modern"),
   theme: themeModeSchema.default("system"),
   dailyGoal: z.number().int().min(1).max(20).default(3),
 });
@@ -21,11 +21,7 @@ export const userSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Nama minimal 2 karakter")
-    .max(80, "Nama maksimal 80 karakter"),
+  name: z.string().trim().min(2, "Nama minimal 2 karakter").max(80, "Nama maksimal 80 karakter"),
   email: z.email("Format email tidak valid").transform((value) => value.toLowerCase()),
   password: z
     .string()

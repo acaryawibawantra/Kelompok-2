@@ -47,9 +47,7 @@ function patchProjectLists(
 ): void {
   queryClient.setQueriesData<Project[]>({ queryKey: ["projects"] }, (previous) => {
     if (!previous) return previous;
-    return previous
-      .map(updater)
-      .filter((project): project is Project => project !== null);
+    return previous.map(updater).filter((project): project is Project => project !== null);
   });
 }
 
@@ -58,7 +56,9 @@ function patchProjectEverywhere(
   projectId: string,
   updater: (project: Project) => Project,
 ): void {
-  patchProjectLists(queryClient, (project) => (project.id === projectId ? updater(project) : project));
+  patchProjectLists(queryClient, (project) =>
+    project.id === projectId ? updater(project) : project,
+  );
   setDetail(queryClient, projectId, (detail) => ({
     ...detail,
     project: detail.project.id === projectId ? updater(detail.project) : detail.project,
@@ -255,6 +255,7 @@ export function useCreateTask(projectId: string) {
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: detailKey(projectId) });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.scheduledTasks });
     },
   });
 }
@@ -294,7 +295,9 @@ export function useUpdateTask(projectId: string) {
         previous
           ? withStats({
               ...previous,
-              tasks: previous.tasks.map((task) => (task.id === result.task.id ? result.task : task)),
+              tasks: previous.tasks.map((task) =>
+                task.id === result.task.id ? result.task : task,
+              ),
             })
           : previous,
       );
@@ -304,6 +307,7 @@ export function useUpdateTask(projectId: string) {
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.streak });
       void queryClient.invalidateQueries({ queryKey: queryKeys.archivedTasks });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.scheduledTasks });
     },
   });
 }
@@ -327,6 +331,7 @@ export function useDeleteTask(projectId: string) {
       void queryClient.invalidateQueries({ queryKey: detailKey(projectId) });
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.archivedTasks });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.scheduledTasks });
     },
   });
 }
@@ -381,7 +386,10 @@ export function useSetProjectArchived() {
     onMutate: async ({ projectId, archived }) => {
       await queryClient.cancelQueries({ queryKey: ["projects"] });
       const snapshots = queryClient.getQueriesData<Project[]>({ queryKey: ["projects"] });
-      patchProjectEverywhere(queryClient, projectId, (project) => ({ ...project, isArchived: archived }));
+      patchProjectEverywhere(queryClient, projectId, (project) => ({
+        ...project,
+        isArchived: archived,
+      }));
       patchProjectLists(queryClient, (project) => (project.id === projectId ? null : project));
       return { snapshots };
     },

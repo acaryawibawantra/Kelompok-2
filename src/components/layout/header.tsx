@@ -10,6 +10,7 @@ import { useUiStore } from "@/lib/stores/ui-store";
 
 const TITLES: Record<string, string> = {
   archive: "Archive",
+  calendar: "Calendar",
   streak: "Streak",
   settings: "Pengaturan",
   invites: "Undangan",
@@ -32,12 +33,12 @@ export function Header() {
   const crumbs = breadcrumbFor(pathname);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-canvas/85 px-3 backdrop-blur-md sm:px-5">
+    <header className="border-border bg-canvas/85 sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-3 backdrop-blur-md sm:px-5">
       <button
         type="button"
         onClick={() => setMobileNavOpen(true)}
         aria-label="Buka menu"
-        className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground lg:hidden"
+        className="text-muted hover:bg-surface-2 hover:text-foreground grid size-9 place-items-center rounded-lg lg:hidden"
       >
         <Menu className="size-5" aria-hidden />
       </button>
@@ -47,18 +48,18 @@ export function Header() {
           {crumbs.map((crumb, index) => (
             <li key={crumb.href} className="flex min-w-0 items-center gap-1.5">
               {index > 0 ? (
-                <span className="hidden text-muted/60 sm:inline" aria-hidden>
+                <span className="text-muted/60 hidden sm:inline" aria-hidden>
                   /
                 </span>
               ) : null}
               {index === crumbs.length - 1 ? (
-                <span className="truncate font-medium text-foreground" aria-current="page">
+                <span className="text-foreground truncate font-medium" aria-current="page">
                   {crumb.label}
                 </span>
               ) : (
                 <Link
                   href={crumb.href}
-                  className="hidden truncate text-muted hover:text-foreground sm:inline"
+                  className="text-muted hover:text-foreground hidden truncate sm:inline"
                 >
                   {crumb.label}
                 </Link>
@@ -73,11 +74,11 @@ export function Header() {
           type="button"
           onClick={() => setCommandOpen(true)}
           aria-label="Cari project atau aksi"
-          className="hidden h-9 items-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm text-muted transition-colors hover:border-brand-300 hover:text-foreground md:flex"
+          className="border-border bg-surface text-muted hover:border-brand-300 hover:text-foreground hidden h-9 items-center gap-2 rounded-xl border px-3 text-sm transition-colors md:flex"
         >
           <Search className="size-4" aria-hidden />
           <span className="w-32 text-left">Cari…</span>
-          <kbd className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[10px]">
+          <kbd className="border-border bg-surface-2 rounded-md border px-1.5 py-0.5 text-[10px]">
             ⌘K
           </kbd>
         </button>
@@ -85,12 +86,12 @@ export function Header() {
           type="button"
           onClick={() => setCommandOpen(true)}
           aria-label="Cari"
-          className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground md:hidden"
+          className="text-muted hover:bg-surface-2 hover:text-foreground grid size-9 place-items-center rounded-lg md:hidden"
         >
           <Search className="size-5" aria-hidden />
         </button>
         <StreakBadge />
-        <ThemeToggle className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground" />
+        <ThemeToggle className="text-muted hover:bg-surface-2 hover:text-foreground grid size-9 place-items-center rounded-lg" />
         <UserMenu />
       </div>
     </header>

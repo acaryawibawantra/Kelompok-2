@@ -11,6 +11,7 @@ import type {
   Project,
   ProjectScope,
   RegisterInput,
+  ScheduledTask,
   StreakSummary,
   Subject,
   Task,
@@ -63,6 +64,7 @@ export interface TaskCanvasApi {
     remove(id: string): Promise<void>;
     listArchived(): Promise<ArchivedTask[]>;
     listDueToday(): Promise<DueTask[]>;
+    listScheduled(): Promise<ScheduledTask[]>;
   };
   members: {
     list(projectId: string): Promise<Member[]>;

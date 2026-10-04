@@ -24,16 +24,9 @@ import { ApiError } from "@/lib/api/errors";
 import { computeStreak, localDay } from "@/lib/streak";
 import { colorFromId } from "@/lib/utils";
 import { positionBetween } from "@/lib/ordering";
-import type { ArchivedTask, DueTask } from "@/types";
+import type { ArchivedTask, DueTask, ScheduledTask } from "@/types";
 import type { ProjectDetail, TaskCanvasApi, TaskMutationResult } from "@/lib/api/types";
-import {
-  getDb,
-  requireUser,
-  saveDb,
-  simulate,
-  type MockDb,
-  type ProjectRow,
-} from "./store";
+import { getDb, requireUser, saveDb, simulate, type MockDb, type ProjectRow } from "./store";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -122,7 +115,9 @@ export const mockApi: TaskCanvasApi = {
       const db = getDb();
       const email = input.email.toLowerCase();
       if (db.users.some((user) => user.email.toLowerCase() === email)) {
-        throw new ApiError("CONFLICT", "Email sudah terdaftar.", { email: "Email sudah terdaftar." });
+        throw new ApiError("CONFLICT", "Email sudah terdaftar.", {
+          email: "Email sudah terdaftar.",
+        });
       }
       const user: User = {
         id: `u_${nanoid(8)}`,
@@ -130,7 +125,7 @@ export const mockApi: TaskCanvasApi = {
         email,
         avatarColor: colorFromId(email),
         timezone: "Asia/Jakarta",
-        settings: { titleFont: "handwritten", theme: "system", dailyGoal: 3 },
+        settings: { titleFont: "modern", theme: "system", dailyGoal: 3 },
         createdAt: nowIso(),
       };
       db.users.push(user);
@@ -559,6 +554,23 @@ export const mockApi: TaskCanvasApi = {
           subjectName: db.subjects.find((s) => s.id === task.subjectId)?.name ?? "Tanpa subject",
         }));
     },
+
+    async listScheduled(): Promise<ScheduledTask[]> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      const allowed = new Set(
+        db.members.filter((m) => m.userId === user.id).map((m) => m.projectId),
+      );
+      return db.tasks
+        .filter((task) => task.dueDate !== null && !task.isArchived && allowed.has(task.projectId))
+        .map((task) => ({
+          ...task,
+          projectName: db.projects.find((p) => p.id === task.projectId)?.name ?? "Tanpa project",
+          subjectName: db.subjects.find((s) => s.id === task.subjectId)?.name ?? "Tanpa subject",
+        }))
+        .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""));
+    },
   },
 
   members: {
@@ -622,9 +634,7 @@ export const mockApi: TaskCanvasApi = {
       if (target?.role === "owner") {
         throw new ApiError("FORBIDDEN", "Owner tidak dapat keluar dari project miliknya.");
       }
-      db.members = db.members.filter(
-        (m) => !(m.projectId === projectId && m.userId === userId),
-      );
+      db.members = db.members.filter((m) => !(m.projectId === projectId && m.userId === userId));
       saveDb(db);
     },
   },

@@ -53,9 +53,9 @@ export const tasksQuerySchema = z
       .enum(["true", "false"])
       .transform((value) => value === "true")
       .optional(),
-    due: z.literal("today").optional(),
+    due: z.enum(["today", "scheduled"]).optional(),
   })
-  .refine((value) => !(value.archived === true && value.due === "today"), {
+  .refine((value) => !(value.archived === true && value.due !== undefined), {
     message: "Pilih salah satu: archived atau due.",
   });
 
@@ -66,3 +66,4 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type ArchivedTask = z.infer<typeof taskWithContextSchema>;
 export type DueTask = z.infer<typeof taskWithContextSchema>;
+export type ScheduledTask = z.infer<typeof taskWithContextSchema>;

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import {
   Archive,
+  CalendarDays,
   Flame,
   Folder,
   LayoutGrid,
@@ -47,6 +48,14 @@ function buildCommands(projects: Project[], router: ReturnType<typeof useRouter>
       run: () => router.push("/"),
     },
     {
+      id: "calendar",
+      label: "Calendar",
+      hint: "Navigasi",
+      keywords: "jadwal kalender tenggat deadline",
+      icon: <CalendarDays className="size-4" aria-hidden />,
+      run: () => router.push("/calendar"),
+    },
+    {
       id: "archive",
       label: "Archive",
       hint: "Navigasi",
@@ -86,13 +95,7 @@ function buildCommands(projects: Project[], router: ReturnType<typeof useRouter>
   return [...navigation, ...projectCommands];
 }
 
-function PaletteDialog({
-  projects,
-  onClose,
-}: {
-  projects: Project[];
-  onClose: () => void;
-}) {
+function PaletteDialog({ projects, onClose }: { projects: Project[]; onClose: () => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -139,10 +142,10 @@ function PaletteDialog({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -12, scale: 0.98 }}
         transition={{ duration: 0.18 }}
-        className="relative z-10 w-full max-w-lg overflow-hidden rounded-card border border-border bg-surface shadow-pop"
+        className="rounded-card border-border bg-surface shadow-pop relative z-10 w-full max-w-lg overflow-hidden border"
       >
-        <div className="flex items-center gap-2 border-b border-border px-4">
-          <Search className="size-4 shrink-0 text-muted" aria-hidden />
+        <div className="border-border flex items-center gap-2 border-b px-4">
+          <Search className="text-muted size-4 shrink-0" aria-hidden />
           <input
             ref={inputRef}
             value={query}
@@ -167,16 +170,16 @@ function PaletteDialog({
             }}
             placeholder="Cari project atau aksi…"
             aria-label="Cari"
-            className="h-12 w-full bg-transparent text-sm text-foreground placeholder:text-muted/70 focus:outline-none"
+            className="text-foreground placeholder:text-muted/70 h-12 w-full bg-transparent text-sm focus:outline-none"
           />
-          <kbd className="hidden rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted sm:block">
+          <kbd className="border-border bg-surface-2 text-muted hidden rounded-md border px-1.5 py-0.5 text-[10px] sm:block">
             Esc
           </kbd>
         </div>
 
         <ul role="listbox" aria-label="Hasil" className="max-h-80 overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <li className="px-3 py-6 text-center text-sm text-muted">
+            <li className="text-muted px-3 py-6 text-center text-sm">
               Tidak ada hasil untuk “{query}”.
             </li>
           ) : (
@@ -196,7 +199,7 @@ function PaletteDialog({
                   <span className="text-muted">{command.icon}</span>
                   <span className="min-w-0 flex-1 truncate">{command.label}</span>
                   {command.hint ? (
-                    <span className="text-[11px] text-muted">{command.hint}</span>
+                    <span className="text-muted text-[11px]">{command.hint}</span>
                   ) : null}
                 </button>
               </li>

@@ -1,8 +1,8 @@
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { dailyActivity, projectMembers, projects, subjects, tasks } from "@/db/schema";
 import { ApiError } from "@/lib/api/errors";
-import type { ArchivedTask, DueTask, StreakSummary, User } from "@/types";
+import type { ArchivedTask, DueTask, ScheduledTask, StreakSummary, User } from "@/types";
 import { computeStreak, localDay } from "@/lib/streak";
 import { positionBetween } from "@/lib/ordering";
 import { requireMember } from "@/server/authz";
@@ -25,10 +25,7 @@ async function findTask(id: string): Promise<typeof tasks.$inferSelect> {
 
 export async function getStreak(user: User): Promise<StreakSummary> {
   const db = getDb();
-  const rows = await db
-    .select()
-    .from(dailyActivity)
-    .where(eq(dailyActivity.userId, user.id));
+  const rows = await db.select().from(dailyActivity).where(eq(dailyActivity.userId, user.id));
   return computeStreak({
     activity: rows.map((row) => ({ date: row.date, count: row.completedCount })),
     timezone: user.timezone,
@@ -234,4 +231,25 @@ export async function listDueTodayTasks(user: User): Promise<DueTask[]> {
     projectName: row.projectName,
     subjectName: row.subjectName,
   }));
+}
+
+export async function listScheduledTasks(user: User): Promise<ScheduledTask[]> {
+  const db = getDb();
+  const ids = await allowedProjectIds(user.id);
+  if (ids.length === 0) return [];
+  const rows = await db
+    .select({ task: tasks, projectName: projects.name, subjectName: subjects.name })
+    .from(tasks)
+    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .innerJoin(subjects, eq(tasks.subjectId, subjects.id))
+    .where(
+      and(isNotNull(tasks.dueDate), eq(tasks.isArchived, false), inArray(tasks.projectId, ids)),
+    );
+  return rows
+    .map((row) => ({
+      ...toTask(row.task),
+      projectName: row.projectName,
+      subjectName: row.subjectName,
+    }))
+    .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""));
 }

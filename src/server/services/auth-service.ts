@@ -34,6 +34,7 @@ export async function registerUser(input: RegisterInput): Promise<User> {
     passwordHash: hash,
     passwordSalt: salt,
     avatarColor: colorFromId(email),
+    titleFont: "modern",
     createdAt: now,
     updatedAt: now,
   });

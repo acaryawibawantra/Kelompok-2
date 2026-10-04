@@ -12,6 +12,7 @@ import type {
   Member,
   Project,
   RegisterInput,
+  ScheduledTask,
   StreakSummary,
   Subject,
   Task,
@@ -54,9 +55,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    const error = (body as { error?: { code?: string; message?: string; fields?: Record<string, string> } })
-      ?.error;
-    const code = (error?.code as ApiErrorCode | undefined) ?? STATUS_TO_CODE[response.status] ?? "INTERNAL";
+    const error = (
+      body as { error?: { code?: string; message?: string; fields?: Record<string, string> } }
+    )?.error;
+    const code =
+      (error?.code as ApiErrorCode | undefined) ?? STATUS_TO_CODE[response.status] ?? "INTERNAL";
     throw new ApiError(code, error?.message ?? "Terjadi kesalahan pada server.", error?.fields);
   }
 
@@ -95,11 +98,11 @@ export const httpApi: TaskCanvasApi = {
     get: (id) => request<ProjectDetail>(`/projects/${id}`),
     update: (id, input: UpdateProjectInput) =>
       request<Project>(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
-    remove: (id) => request<{ ok: true }>(`/projects/${id}`, { method: "DELETE" }).then(() => undefined),
+    remove: (id) =>
+      request<{ ok: true }>(`/projects/${id}`, { method: "DELETE" }).then(() => undefined),
     setArchived: (id, archived) =>
       request<Project>(`/projects/${id}/${archived ? "archive" : "unarchive"}`, { method: "POST" }),
-    setFavorite: (id, value) =>
-      request<Project>(`/projects/${id}/favorite`, body({ value })),
+    setFavorite: (id, value) => request<Project>(`/projects/${id}/favorite`, body({ value })),
   },
   subjects: {
     create: (projectId, input: CreateSubjectInput) =>
@@ -123,6 +126,7 @@ export const httpApi: TaskCanvasApi = {
       request<{ ok: true }>(`/tasks/${id}`, { method: "DELETE" }).then(() => undefined),
     listArchived: () => request<ArchivedTask[]>("/tasks?archived=true"),
     listDueToday: () => request<DueTask[]>("/tasks?due=today"),
+    listScheduled: () => request<ScheduledTask[]>("/tasks?due=scheduled"),
   },
   members: {
     list: (projectId) => request<Member[]>(`/projects/${projectId}/members`),

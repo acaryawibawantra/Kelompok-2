@@ -7,15 +7,15 @@ import type { ThemeMode, TitleFont } from "@/types";
 
 const FONTS: Array<{ value: TitleFont; label: string; cssVar: string; sample: string }> = [
   {
-    value: "handwritten",
-    label: "Handwritten",
-    cssVar: "var(--font-handwritten)",
+    value: "modern",
+    label: "Modern (Poppins)",
+    cssVar: "var(--font-body)",
     sample: "My Space",
   },
   {
-    value: "modern",
-    label: "Bersih & Modern",
-    cssVar: "var(--font-modern)",
+    value: "handwritten",
+    label: "Handwritten",
+    cssVar: "var(--font-handwritten)",
     sample: "My Space",
   },
   {
@@ -56,14 +56,17 @@ export function FontPicker({
             )}
           >
             {active ? (
-              <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-brand-600 text-white">
+              <span className="bg-brand-600 absolute top-3 right-3 grid size-5 place-items-center rounded-full text-white">
                 <Check className="size-3" strokeWidth={3} aria-hidden />
               </span>
             ) : null}
-            <span className="text-3xl leading-none text-foreground" style={{ fontFamily: font.cssVar }}>
+            <span
+              className="text-foreground text-3xl leading-none"
+              style={{ fontFamily: font.cssVar }}
+            >
               {font.sample}
             </span>
-            <span className="text-sm font-medium text-foreground">{font.label}</span>
+            <span className="text-foreground text-sm font-medium">{font.label}</span>
           </button>
         );
       })}

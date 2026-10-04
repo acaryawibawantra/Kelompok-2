@@ -20,7 +20,7 @@
     root.dataset.theme = isDark ? "dark" : "light";
 
     var font = settings.titleFont;
-    if (font !== "modern" && font !== "serif" && font !== "handwritten") font = "handwritten";
+    if (font !== "modern" && font !== "serif" && font !== "handwritten") font = "modern";
     root.dataset.titleFont = font;
   } catch (error) {
     /* abaikan error storage */
