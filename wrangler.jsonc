@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "semangatbro",
+  "name": "app",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -9,13 +9,13 @@
     "binding": "ASSETS"
   },
   "services": [
-    { "binding": "WORKER_SELF_REFERENCE", "service": "semangatbro" }
+    { "binding": "WORKER_SELF_REFERENCE", "service": "app" }
   ],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "taskcanvas-db",
-      "database_id": "b0c21a7e-3ed4-4fa5-971a-103a90ba1317",
+      "database_name": "semangatbro-db",
+      "database_id": "2ffb3bd2-bfcb-4018-ae5a-680bfe9fd31b",
       "migrations_dir": "drizzle/migrations"
     }
   ],
@@ -24,12 +24,12 @@
       {
         "name": "PROJECT_ROOM",
         "class_name": "ProjectRoom",
-        "script_name": "semangatbro-realtime"
+        "script_name": "app-realtime"
       }
     ]
   },
   "vars": {
-    "APP_URL": "https://semangatbro.exposure-backend.workers.dev",
-    "REALTIME_WS_URL": "wss://semangatbro-realtime.exposure-backend.workers.dev"
+    "APP_URL": "https://app.semangatbro.workers.dev",
+    "REALTIME_WS_URL": "wss://app-realtime.semangatbro.workers.dev"
   }
 }
