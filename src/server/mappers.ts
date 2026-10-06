@@ -1,5 +1,7 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type {
+  attendanceRecords,
+  classSchedules,
   projectInvites,
   projectMembers,
   projects,
@@ -8,6 +10,8 @@ import type {
   users,
 } from "@/db/schema";
 import type {
+  AttendanceRecord,
+  ClassSchedule,
   Invite,
   Member,
   Project,
@@ -23,6 +27,8 @@ type MemberRow = InferSelectModel<typeof projectMembers>;
 type SubjectRow = InferSelectModel<typeof subjects>;
 type TaskRow = InferSelectModel<typeof tasks>;
 type InviteRow = InferSelectModel<typeof projectInvites>;
+type ScheduleRow = InferSelectModel<typeof classSchedules>;
+type AttendanceRow = InferSelectModel<typeof attendanceRecords>;
 
 export function toIso(date: Date): string {
   return date.toISOString();
@@ -130,5 +136,32 @@ export function toInvite(row: InviteRow, projectName: string): Invite {
     token: row.token,
     status: row.status,
     expiresAt: toIso(row.expiresAt),
+  };
+}
+
+export function toClassSchedule(row: ScheduleRow): ClassSchedule {
+  return {
+    id: row.id,
+    weekday: row.weekday,
+    start: row.start,
+    end: row.end,
+    course: row.course,
+    room: row.room,
+    createdAt: toIso(row.createdAt),
+  };
+}
+
+export function toAttendanceRecord(row: AttendanceRow): AttendanceRecord {
+  return {
+    id: row.id,
+    scheduleId: row.scheduleId,
+    date: row.date,
+    status: row.status,
+    course: row.course,
+    room: row.room,
+    photo: row.photo,
+    note: row.note,
+    checkedInAt: toIso(row.checkedInAt),
+    createdAt: toIso(row.createdAt),
   };
 }

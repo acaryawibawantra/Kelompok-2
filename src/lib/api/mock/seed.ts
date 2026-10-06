@@ -472,5 +472,7 @@ export function createSeedDb(now: Date): MockDb {
     tasks: buildTasks(now),
     invites: INVITES,
     activity: buildActivity(now),
+    schedules: [],
+    attendance: [],
   };
 }

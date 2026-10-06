@@ -33,3 +33,18 @@ export type {
   JoinInviteInput,
 } from "@/lib/schemas/invite";
 export type { StreakDay, StreakSummary } from "@/lib/schemas/streak";
+export type {
+  ClassSchedule,
+  CreateClassScheduleInput,
+  UpdateClassScheduleInput,
+  BulkCreateClassSchedulesInput,
+} from "@/lib/schemas/schedule";
+export type {
+  AttendanceStatus,
+  AttendanceRecord,
+  CreateAttendanceInput,
+  UpdateAttendanceInput,
+  AttendanceSummary,
+  AttendanceWeekDay,
+  AttendanceShareCourse,
+} from "@/lib/schemas/attendance";

@@ -1,5 +1,10 @@
 import { nanoid } from "nanoid";
 import type {
+  AttendanceRecord,
+  AttendanceSummary,
+  ClassSchedule,
+  CreateAttendanceInput,
+  CreateClassScheduleInput,
   CreateInviteInput,
   CreateProjectInput,
   CreateSubjectInput,
@@ -13,6 +18,8 @@ import type {
   StreakSummary,
   Subject,
   Task,
+  UpdateAttendanceInput,
+  UpdateClassScheduleInput,
   UpdateMeInput,
   UpdateMemberRoleInput,
   UpdateProjectInput,
@@ -21,12 +28,22 @@ import type {
   User,
 } from "@/types";
 import { ApiError } from "@/lib/api/errors";
+import { computeAttendanceSummary } from "@/lib/attendance";
 import { computeStreak, localDay } from "@/lib/streak";
 import { colorFromId } from "@/lib/utils";
 import { positionBetween } from "@/lib/ordering";
 import type { ArchivedTask, DueTask, ScheduledTask } from "@/types";
 import type { ProjectDetail, TaskCanvasApi, TaskMutationResult } from "@/lib/api/types";
-import { getDb, requireUser, saveDb, simulate, type MockDb, type ProjectRow } from "./store";
+import {
+  getDb,
+  requireUser,
+  saveDb,
+  simulate,
+  type AttendanceRow,
+  type MockDb,
+  type ProjectRow,
+  type ScheduleRow,
+} from "./store";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -106,6 +123,61 @@ function findTask(db: MockDb, id: string): Task {
   const task = db.tasks.find((item) => item.id === id);
   if (!task) throw new ApiError("NOT_FOUND", "Task tidak ditemukan.");
   return task;
+}
+
+function mondayFirst(weekday: number): number {
+  return (weekday + 6) % 7;
+}
+
+function sortSchedules<T extends { weekday: number; start: string }>(schedules: T[]): T[] {
+  return [...schedules].sort(
+    (a, b) => mondayFirst(a.weekday) - mondayFirst(b.weekday) || a.start.localeCompare(b.start),
+  );
+}
+
+// Buang field internal userId → bentuk publik sesuai skema API.
+function toPublicSchedule(row: ScheduleRow): ClassSchedule {
+  return {
+    id: row.id,
+    weekday: row.weekday,
+    start: row.start,
+    end: row.end,
+    course: row.course,
+    room: row.room,
+    createdAt: row.createdAt,
+  };
+}
+
+function findSchedule(db: MockDb, userId: string, id: string): ScheduleRow {
+  const schedule = db.schedules.find((item) => item.id === id && item.userId === userId);
+  if (!schedule) throw new ApiError("NOT_FOUND", "Jadwal tidak ditemukan.");
+  return schedule;
+}
+
+// Buang field internal userId -> bentuk publik sesuai skema API.
+function toPublicAttendance(row: AttendanceRow): AttendanceRecord {
+  return {
+    id: row.id,
+    scheduleId: row.scheduleId,
+    date: row.date,
+    status: row.status,
+    course: row.course,
+    room: row.room,
+    photo: row.photo,
+    note: row.note,
+    checkedInAt: row.checkedInAt,
+    createdAt: row.createdAt,
+  };
+}
+
+function findAttendance(db: MockDb, userId: string, id: string): AttendanceRow {
+  const record = db.attendance.find((item) => item.id === id && item.userId === userId);
+  if (!record) throw new ApiError("NOT_FOUND", "Catatan presensi tidak ditemukan.");
+  return record;
+}
+
+function requiresProof(status: string): boolean {
+  return status === "present" || status === "late";
 }
 
 export const mockApi: TaskCanvasApi = {
@@ -759,6 +831,204 @@ export const mockApi: TaskCanvasApi = {
       return streakFor(db, user);
     },
   },
+
+  schedules: {
+    async list(): Promise<ClassSchedule[]> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      return sortSchedules(db.schedules.filter((item) => item.userId === user.id)).map(
+        toPublicSchedule,
+      );
+    },
+
+    async create(input: CreateClassScheduleInput): Promise<ClassSchedule> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      if (db.schedules.filter((item) => item.userId === user.id).length >= 100) {
+        throw new ApiError("CONFLICT", "Batas maksimal 100 jadwal kuliah tercapai.");
+      }
+      const row: ScheduleRow = {
+        id: `cs_${nanoid(8)}`,
+        userId: user.id,
+        weekday: input.weekday,
+        start: input.start,
+        end: input.end,
+        course: input.course,
+        room: input.room ?? null,
+        createdAt: nowIso(),
+      };
+      db.schedules.push(row);
+      saveDb(db);
+      return toPublicSchedule(row);
+    },
+
+    async createMany(items: CreateClassScheduleInput[]): Promise<ClassSchedule[]> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      if (db.schedules.filter((item) => item.userId === user.id).length + items.length > 100) {
+        throw new ApiError("CONFLICT", "Impor melebihi batas maksimal 100 jadwal kuliah.");
+      }
+      const rows: ScheduleRow[] = items.map((item) => ({
+        id: `cs_${nanoid(8)}`,
+        userId: user.id,
+        weekday: item.weekday,
+        start: item.start,
+        end: item.end,
+        course: item.course,
+        room: item.room ?? null,
+        createdAt: nowIso(),
+      }));
+      db.schedules.push(...rows);
+      saveDb(db);
+      return rows.map(toPublicSchedule);
+    },
+
+    async update(id: string, input: UpdateClassScheduleInput): Promise<ClassSchedule> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      const row = findSchedule(db, user.id, id);
+      if (input.weekday !== undefined) row.weekday = input.weekday;
+      if (input.start !== undefined) row.start = input.start;
+      if (input.end !== undefined) row.end = input.end;
+      if (input.course !== undefined) row.course = input.course;
+      if (input.room !== undefined) row.room = input.room;
+      saveDb(db);
+      return toPublicSchedule(row);
+    },
+
+    async remove(id: string) {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      findSchedule(db, user.id, id);
+      db.schedules = db.schedules.filter((item) => item.id !== id);
+      saveDb(db);
+    },
+  },
+
+  attendance: {
+    async list(range) {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      return db.attendance
+        .filter(
+          (item) =>
+            item.userId === user.id &&
+            (!range?.from || item.date >= range.from) &&
+            (!range?.to || item.date <= range.to),
+        )
+        .sort((a, b) => b.date.localeCompare(a.date) || b.checkedInAt.localeCompare(a.checkedInAt))
+        .map(toPublicAttendance);
+    },
+
+    async checkIn(input: CreateAttendanceInput): Promise<AttendanceRecord> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      if (input.date > localDay(new Date(), user.timezone)) {
+        throw new ApiError("VALIDATION_ERROR", "Tanggal presensi tidak boleh di masa depan.");
+      }
+
+      let course = input.course ?? "";
+      let room = input.room ?? null;
+
+      if (input.scheduleId) {
+        const schedule = findSchedule(db, user.id, input.scheduleId);
+        course = schedule.course;
+        room = schedule.room;
+      }
+      if (course.trim() === "") {
+        throw new ApiError("VALIDATION_ERROR", "Mata kuliah wajib diisi.");
+      }
+
+      const existing = input.scheduleId
+        ? db.attendance.find(
+            (item) =>
+              item.userId === user.id &&
+              item.scheduleId === input.scheduleId &&
+              item.date === input.date,
+          )
+        : undefined;
+
+      if (existing) {
+        existing.status = input.status;
+        existing.photo = input.photo ?? null;
+        existing.note = input.note ?? null;
+        existing.course = course;
+        existing.room = room;
+        existing.checkedInAt = nowIso();
+        saveDb(db);
+        return toPublicAttendance(existing);
+      }
+
+      const row: AttendanceRow = {
+        id: `at_${nanoid(8)}`,
+        userId: user.id,
+        scheduleId: input.scheduleId ?? null,
+        date: input.date,
+        status: input.status,
+        course,
+        room,
+        photo: input.photo ?? null,
+        note: input.note ?? null,
+        checkedInAt: nowIso(),
+        createdAt: nowIso(),
+      };
+      db.attendance.push(row);
+      saveDb(db);
+      return toPublicAttendance(row);
+    },
+
+    async update(id: string, input: UpdateAttendanceInput): Promise<AttendanceRecord> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      const row = findAttendance(db, user.id, id);
+      const nextStatus = input.status ?? row.status;
+      const nextPhoto = input.photo !== undefined ? input.photo : row.photo;
+      if (requiresProof(nextStatus) && !nextPhoto) {
+        throw new ApiError(
+          "VALIDATION_ERROR",
+          "Foto bukti wajib untuk status Hadir atau Terlambat.",
+        );
+      }
+      if (input.status !== undefined) row.status = input.status;
+      if (input.photo !== undefined) row.photo = input.photo;
+      if (input.note !== undefined) row.note = input.note;
+      saveDb(db);
+      return toPublicAttendance(row);
+    },
+
+    async remove(id: string) {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      findAttendance(db, user.id, id);
+      db.attendance = db.attendance.filter((item) => item.id !== id);
+      saveDb(db);
+    },
+
+    async summary(): Promise<AttendanceSummary> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      return computeAttendanceSummary({
+        records: db.attendance
+          .filter((item) => item.userId === user.id)
+          .map((item) => ({ date: item.date, status: item.status, course: item.course })),
+        schedules: db.schedules
+          .filter((item) => item.userId === user.id)
+          .map((item) => ({ weekday: item.weekday, course: item.course })),
+        timezone: user.timezone,
+        now: new Date(),
+      });
+    },
+  },
 };
 
 function addMemberFromInvite(db: MockDb, invite: Invite, userId: string): void {
@@ -777,4 +1047,11 @@ function addMemberFromInvite(db: MockDb, invite: Invite, userId: string): void {
 }
 
 export { resetDb } from "./store";
-export type { ActivityRow, MockDb, ProjectRow, MemberRow } from "./store";
+export type {
+  ActivityRow,
+  MockDb,
+  ProjectRow,
+  MemberRow,
+  ScheduleRow,
+  AttendanceRow,
+} from "./store";

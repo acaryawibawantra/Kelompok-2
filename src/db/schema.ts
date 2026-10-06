@@ -1,4 +1,12 @@
-import { index, integer, primaryKey, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  index,
+  integer,
+  primaryKey,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -134,3 +142,49 @@ export const authRateLimit = sqliteTable("auth_rate_limit", {
   attempts: integer("attempts").notNull().default(0),
   windowStart: integer("window_start", { mode: "timestamp_ms" }).notNull(),
 });
+
+// Jadwal kuliah mingguan berulang (per-user). weekday 0=Minggu..6=Sabtu,
+// start/end "HH:MM". Fondasi fitur presensi kuliah.
+export const classSchedules = sqliteTable(
+  "class_schedules",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekday: integer("weekday").notNull(),
+    start: text("start").notNull(),
+    end: text("end").notNull(),
+    course: text("course").notNull(),
+    room: text("room"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [index("idx_schedules_user_day").on(table.userId, table.weekday)],
+);
+
+// Catatan presensi per sesi kelas (formatif). Menyimpan snapshot course/room agar
+// riwayat tetap utuh walau jadwal diubah/dihapus (schedule_id di-set NULL).
+export const attendanceRecords = sqliteTable(
+  "attendance_records",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    scheduleId: text("schedule_id").references(() => classSchedules.id, {
+      onDelete: "set null",
+    }),
+    date: text("date").notNull(),
+    status: text("status", { enum: ["present", "late", "excused", "absent"] }).notNull(),
+    course: text("course").notNull(),
+    room: text("room"),
+    photo: text("photo"),
+    note: text("note"),
+    checkedInAt: integer("checked_in_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    index("idx_attendance_user_date").on(table.userId, table.date),
+    uniqueIndex("uniq_attendance_session").on(table.userId, table.scheduleId, table.date),
+  ],
+);

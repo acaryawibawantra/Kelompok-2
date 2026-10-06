@@ -6,3 +6,5 @@ export * from "./task";
 export * from "./member";
 export * from "./invite";
 export * from "./streak";
+export * from "./schedule";
+export * from "./attendance";
