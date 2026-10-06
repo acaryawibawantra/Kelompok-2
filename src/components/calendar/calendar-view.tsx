@@ -9,10 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MonthGrid } from "./month-grid";
 import { DayAgenda } from "./day-agenda";
-import { useMe, useScheduledTasks } from "@/lib/queries";
-import { dateKey, monthLabel } from "@/lib/calendar";
+import { useMe, useScheduledTasks, useSchedules } from "@/lib/queries";
+import { dateKey, monthLabel, monthMatrix } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
-import type { ScheduledTask } from "@/types";
+import type { ClassSchedule, ScheduledTask } from "@/types";
 
 const selectClass =
   "h-10 rounded-xl border border-border bg-surface px-3 text-sm text-foreground focus-visible:border-brand-400";
@@ -21,6 +21,8 @@ export function CalendarView() {
   const { data: user } = useMe();
   const timezone = user?.timezone ?? "Asia/Jakarta";
   const { data, isLoading, isError, refetch } = useScheduledTasks();
+  const schedulesQuery = useSchedules();
+  const schedules = useMemo(() => schedulesQuery.data ?? [], [schedulesQuery.data]);
 
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState(() => new Date());
@@ -63,14 +65,31 @@ export function CalendarView() {
     return map;
   }, [filtered]);
 
+  // Sesi jadwal kuliah mingguan: sama setiap minggu, dipetakan ke tanggal grid bulan.
+  const sessionsByDay = useMemo(() => {
+    const map = new Map<string, ClassSchedule[]>();
+    for (const date of monthMatrix(viewMonth)) {
+      const daySessions = schedules
+        .filter((schedule) => schedule.weekday === date.getDay())
+        .sort((a, b) => a.start.localeCompare(b.start));
+      if (daySessions.length > 0) map.set(dateKey(date), daySessions);
+    }
+    return map;
+  }, [schedules, viewMonth]);
+
   const selectedKey = dateKey(selected);
   const selectedTasks = tasksByDay.get(selectedKey) ?? [];
+  const selectedSessions = sessionsByDay.get(selectedKey) ?? [];
 
   const monthPrefix = dateKey(startOfMonth(viewMonth)).slice(0, 7);
   const monthTasks = filtered.filter((task) => task.dueDate.startsWith(monthPrefix));
   const monthDone = monthTasks.filter((task) => task.isDone).length;
   const todayKey = dateKey(new Date());
   const monthOverdue = monthTasks.filter((task) => !task.isDone && task.dueDate < todayKey).length;
+  const monthSessions = [...sessionsByDay.entries()]
+    .filter(([key]) => key.startsWith(monthPrefix))
+    .reduce((sum, [, list]) => sum + list.length, 0);
+  const combinedLoading = isLoading || schedulesQuery.isLoading;
 
   function goToToday() {
     const now = new Date();
@@ -222,6 +241,7 @@ export function CalendarView() {
                 month={viewMonth}
                 selected={selected}
                 tasksByDay={tasksByDay}
+                sessionsByDay={sessionsByDay}
                 onSelect={handleSelect}
               />
             )}
@@ -250,6 +270,11 @@ export function CalendarView() {
                   <strong className="text-foreground font-semibold">{monthTasks.length}</strong>{" "}
                   task
                 </span>
+                {monthSessions > 0 ? (
+                  <span className="text-emerald-600 dark:text-emerald-300">
+                    <strong className="font-semibold">{monthSessions}</strong> kelas
+                  </span>
+                ) : null}
                 <span>
                   <strong className="text-foreground font-semibold">{monthDone}</strong> selesai
                 </span>
@@ -279,8 +304,9 @@ export function CalendarView() {
             <DayAgenda
               date={selected}
               tasks={selectedTasks}
+              sessions={selectedSessions}
               timezone={timezone}
-              isLoading={isLoading}
+              isLoading={combinedLoading}
               isToday={selectedKey === todayKey}
             />
             <p className="text-muted mt-3 flex items-center gap-2 px-1 text-xs">

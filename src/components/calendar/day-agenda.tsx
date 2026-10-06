@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CalendarCheck2, CalendarClock } from "lucide-react";
+import { ArrowUpRight, CalendarCheck2, CalendarClock, GraduationCap } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
@@ -9,7 +9,7 @@ import { useUpdateTask } from "@/lib/queries";
 import { todayInTimezone } from "@/lib/format";
 import { fullDayLabel } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
-import type { Priority, ScheduledTask } from "@/types";
+import type { ClassSchedule, Priority, ScheduledTask } from "@/types";
 
 const priorityColor: Record<Priority, string> = {
   high: "bg-danger",
@@ -103,12 +103,13 @@ function ScheduledTaskRow({ task, timezone }: { task: ScheduledTask; timezone: s
 export interface DayAgendaProps {
   date: Date;
   tasks: ScheduledTask[];
+  sessions: ClassSchedule[];
   timezone: string;
   isLoading: boolean;
   isToday: boolean;
 }
 
-export function DayAgenda({ date, tasks, timezone, isLoading, isToday }: DayAgendaProps) {
+export function DayAgenda({ date, tasks, sessions, timezone, isLoading, isToday }: DayAgendaProps) {
   const done = tasks.filter((task) => task.isDone).length;
 
   return (
@@ -137,6 +138,33 @@ export function DayAgenda({ date, tasks, timezone, isLoading, isToday }: DayAgen
         ) : null}
       </div>
 
+      {sessions.length > 0 ? (
+        <div className="border-border mt-4 border-t pt-4">
+          <p className="text-emerald-600 dark:text-emerald-300 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.12em] uppercase">
+            <GraduationCap className="size-3.5" aria-hidden />
+            Kelas ({sessions.length})
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {sessions.map((session) => (
+              <li
+                key={session.id}
+                className="border-border bg-surface flex items-center gap-3 rounded-xl border-l-2 border-l-emerald-500 px-3 py-2"
+              >
+                <span className="w-24 shrink-0 text-sm font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
+                  {session.start}–{session.end}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-foreground truncate text-sm font-medium">{session.course}</p>
+                  {session.room ? (
+                    <p className="text-muted truncate text-xs">Ruang {session.room}</p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="mt-4 flex-1">
         {isLoading ? (
           <div className="space-y-2">
@@ -148,7 +176,11 @@ export function DayAgenda({ date, tasks, timezone, isLoading, isToday }: DayAgen
           <div className="border-border flex h-full min-h-40 flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center">
             <CalendarClock className="text-muted/60 size-7" aria-hidden />
             <p className="text-foreground mt-2 text-sm font-medium">Tidak ada task</p>
-            <p className="text-muted text-xs">Tidak ada task yang jatuh tempo pada hari ini.</p>
+            <p className="text-muted text-xs">
+              {sessions.length > 0
+                ? `Tidak ada task yang jatuh tempo, tapi ada ${sessions.length} kelas hari ini.`
+                : "Tidak ada task yang jatuh tempo pada hari ini."}
+            </p>
           </div>
         ) : (
           <ul className="space-y-2">
