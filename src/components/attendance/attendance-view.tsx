@@ -1,15 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  CalendarCheck2,
-  CheckCircle2,
-  Flame,
-  GraduationCap,
-  Percent,
-  Trash2,
-  XCircle,
-} from "lucide-react";
+import { GraduationCap, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -17,11 +9,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
-import { useAttendance, useAttendanceSummary, useDeleteAttendance, useMe, useUpdateAttendance } from "@/lib/queries";
+import {
+  useAttendance,
+  useAttendanceSummary,
+  useDeleteAttendance,
+  useMe,
+  useUpdateAttendance,
+} from "@/lib/queries";
 import { formatDateTime, formatFullDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { AttendanceRecord, AttendanceStatus } from "@/types";
 import { ATTENDANCE_STATUS_META, ATTENDANCE_STATUS_ORDER } from "./status";
+import { AttendanceDashboard } from "./attendance-dashboard";
 import { ShareCard } from "./share-card";
 
 const selectClass =
@@ -71,69 +70,22 @@ export function AttendanceView() {
   const summary = summaryQuery.data;
   const loading = summaryQuery.isLoading || attendanceQuery.isLoading;
 
-  const stats = [
-    {
-      key: "streak",
-      icon: Flame,
-      value: summary?.currentStreak ?? 0,
-      label: "Streak kehadiran (hari)",
-      tone: "bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-300",
-    },
-    {
-      key: "rate",
-      icon: Percent,
-      value: `${summary?.attendanceRate ?? 0}%`,
-      label: "Rata-rata kehadiran",
-      tone: "bg-brand-100 text-brand-600 dark:bg-brand-900/40 dark:text-brand-200",
-    },
-    {
-      key: "present",
-      icon: CheckCircle2,
-      value: summary?.totalPresent ?? 0,
-      label: "Total hadir",
-      tone: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300",
-    },
-    {
-      key: "absent",
-      icon: XCircle,
-      value: summary?.totalAbsent ?? 0,
-      label: "Total alpha",
-      tone: "bg-danger-soft text-rose-600 dark:bg-rose-950/40 dark:text-rose-300",
-    },
-  ];
-
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <PageHeader
         eyebrow="Presensi"
         title="Kehadiran Kuliah"
-        description="Rekap kehadiran, streak, dan kartu mingguan yang bisa kamu bagikan."
+        description="Rekap kehadiran, streak, dan template siap bagikan."
       />
 
       {loading ? (
         <div className="mt-6 space-y-4">
-          <Skeleton className="h-28 w-full rounded-card" />
           <Skeleton className="h-64 w-full rounded-card" />
+          <Skeleton className="h-72 w-full rounded-card" />
         </div>
       ) : (
         <div className="mt-6 space-y-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {stats.map((stat) => (
-              <div
-                key={stat.key}
-                className="rounded-card border border-border bg-surface p-4 shadow-soft"
-              >
-                <span className={cn("grid size-9 place-items-center rounded-2xl", stat.tone)}>
-                  <stat.icon className="size-5" aria-hidden />
-                </span>
-                <p className="text-foreground mt-2 text-2xl font-semibold tabular-nums">
-                  {stat.value}
-                </p>
-                <p className="text-muted text-xs">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
+          {summary ? <AttendanceDashboard summary={summary} /> : null}
           {summary ? <ShareCard summary={summary} name={name} /> : null}
 
           <section className="rounded-card border border-border bg-surface p-4 shadow-soft sm:p-5">
@@ -149,12 +101,9 @@ export function AttendanceView() {
               <div className="space-y-5">
                 {grouped.map(([date, items]) => (
                   <div key={date}>
-                    <div className="mb-2 flex items-center gap-2">
-                      <CalendarCheck2 className="text-muted size-4" aria-hidden />
-                      <h3 className="text-foreground text-sm font-semibold">
-                        {formatFullDate(date)}
-                      </h3>
-                    </div>
+                    <h3 className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
+                      {formatFullDate(date)}
+                    </h3>
                     <ul className="space-y-2">
                       {items.map((record) => {
                         const meta = ATTENDANCE_STATUS_META[record.status];
