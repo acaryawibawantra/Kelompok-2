@@ -53,4 +53,10 @@ describe("parseScheduleText", () => {
     expect(parseScheduleText("")).toEqual([]);
     expect(parseScheduleText("tidak ada jadwal di sini")).toEqual([]);
   });
+
+  it("memotong nama mata kuliah panjang agar lolos validasi API (maks 80)", () => {
+    const longCourse = `Pemrograman ${"X".repeat(120)}`;
+    const result = parseScheduleText(`Senin 07:00-09:00 ${longCourse}`);
+    expect(result[0]!.course.length).toBe(80);
+  });
 });

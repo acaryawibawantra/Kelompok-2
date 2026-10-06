@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/toast";
 import { useCreateSchedules } from "@/lib/queries";
+import { isApiError } from "@/lib/api";
 import { parseScheduleText } from "@/lib/schedule-ocr";
 import { DAY_OPTIONS } from "./schedule-form-modal";
 import type { CreateClassScheduleInput } from "@/types";
@@ -117,17 +118,8 @@ function ImportScheduleInner({ onClose }: { onClose: () => void }) {
   }
 
   function handleSave() {
-    const items: CreateClassScheduleInput[] = drafts
-      .filter((draft) => draft.include && draft.course.trim() !== "" && draft.start < draft.end)
-      .map((draft) => ({
-        weekday: draft.weekday,
-        start: draft.start,
-        end: draft.end,
-        course: draft.course.trim(),
-        room: draft.room.trim() === "" ? null : draft.room.trim(),
-      }));
-
-    if (items.length === 0) {
+    const included = drafts.filter((draft) => draft.include);
+    if (included.length === 0) {
       toast({
         title: "Tidak ada jadwal valid",
         description: "Centang minimal satu draf dengan mata kuliah & jam yang benar.",
@@ -135,12 +127,42 @@ function ImportScheduleInner({ onClose }: { onClose: () => void }) {
       return;
     }
 
+    const invalid = included.find(
+      (draft) =>
+        draft.course.trim() === "" ||
+        draft.start >= draft.end ||
+        draft.course.trim().length > 80 ||
+        draft.room.trim().length > 40,
+    );
+    if (invalid) {
+      toast({
+        title: "Ada baris yang belum sesuai",
+        description:
+          "Pastikan mata kuliah terisi (maks 80 karakter), ruang maks 40, dan jam selesai setelah jam mulai.",
+        tone: "error",
+      });
+      return;
+    }
+
+    const items: CreateClassScheduleInput[] = included.map((draft) => ({
+      weekday: draft.weekday,
+      start: draft.start,
+      end: draft.end,
+      course: draft.course.trim(),
+      room: draft.room.trim() === "" ? null : draft.room.trim(),
+    }));
+
     createSchedules.mutate(items, {
       onSuccess: (created) => {
         toast({ title: `${created.length} jadwal tersimpan` });
         onClose();
       },
-      onError: () => toast({ title: "Gagal menyimpan jadwal", tone: "error" }),
+      onError: (error) =>
+        toast({
+          title: "Gagal menyimpan jadwal",
+          description: isApiError(error) ? error.message : undefined,
+          tone: "error",
+        }),
     });
   }
 
@@ -280,6 +302,7 @@ function ImportScheduleInner({ onClose }: { onClose: () => void }) {
                     )
                   }
                   className="h-9 min-w-40 flex-1"
+                  maxLength={80}
                 />
                 <Input
                   aria-label="Ruang"
@@ -289,6 +312,7 @@ function ImportScheduleInner({ onClose }: { onClose: () => void }) {
                   }
                   className="h-9 w-24"
                   placeholder="Ruang"
+                  maxLength={40}
                 />
                 <Button
                   variant="ghost"

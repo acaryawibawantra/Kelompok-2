@@ -87,7 +87,15 @@ export function parseScheduleText(text: string): ParsedSchedule[] {
     }
 
     if (rest === "") continue;
-    results.push({ weekday: activeDay, start, end, course: rest, room });
+    // Batasi agar selalu lolos validasi API (course maks 80, room maks 40).
+    const course = rest.slice(0, 80).trim();
+    results.push({
+      weekday: activeDay,
+      start,
+      end,
+      course,
+      room: room ? room.slice(0, 40) : null,
+    });
   }
 
   return results;
