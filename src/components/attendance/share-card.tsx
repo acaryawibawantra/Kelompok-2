@@ -1,25 +1,57 @@
 "use client";
 
-import { useRef } from "react";
-import { Download, Share2 } from "lucide-react";
+import { Download, Share2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { formatDueDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { AttendanceSummary } from "@/types";
 
-// Urutan Senin–Minggu, mengikuti minggu pada computeAttendanceSummary.
+// Senin–Minggu, mengikuti urutan minggu pada computeAttendanceSummary.
 const DAY_INITIAL = ["S", "S", "R", "K", "J", "S", "M"] as const;
+
+const FONT_STACK = "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+
+interface StoryStat {
+  emoji: string;
+  label: string;
+  value: string;
+  valueFont?: number;
+}
+
+function storyStats(summary: AttendanceSummary): StoryStat[] {
+  const bestCourse = summary.week.courses.find((course) => course.scheduled > 0)?.course;
+  const stats: StoryStat[] = [
+    {
+      emoji: "🎓",
+      label: "Kelas Dihadiri",
+      value: `${summary.week.attended}/${summary.week.scheduled}`,
+    },
+    { emoji: "🔥", label: "Streak Kehadiran", value: `${summary.currentStreak} hari` },
+    { emoji: "📈", label: "Persentase Hadir", value: `${summary.week.rate}%` },
+    { emoji: "✅", label: "Total Hadir", value: `${summary.totalPresent}` },
+  ];
+  if (bestCourse) {
+    const trimmed = bestCourse.length > 28 ? `${bestCourse.slice(0, 27)}…` : bestCourse;
+    stats.push({ emoji: "🏆", label: "Mata Kuliah Terbaik", value: trimmed, valueFont: 68 });
+  }
+  return stats;
+}
 
 function buildShareText(summary: AttendanceSummary, name: string): string {
   const range = `${formatDueDate(summary.week.start)} – ${formatDueDate(summary.week.end)}`;
+  const best = summary.week.courses.find((course) => course.scheduled > 0)?.course;
   return [
-    `Presensi kuliah ${name} · ${range}`,
-    `Hadir ${summary.week.attended}/${summary.week.scheduled} kelas (${summary.week.rate}%)`,
-    `Streak kehadiran ${summary.currentStreak} hari`,
-    `Rata-rata kehadiran ${summary.attendanceRate}%`,
+    `🎓 Presensi kuliah ${name}`,
+    `🗓️ ${range}`,
+    `✅ Hadir ${summary.week.attended}/${summary.week.scheduled} kelas (${summary.week.rate}%)`,
+    `🔥 Streak ${summary.currentStreak} hari`,
+    `📈 Rata-rata kehadiran ${summary.attendanceRate}%`,
+    best ? `🏆 Terbaik: ${best}` : "",
     "#TaskCanvas",
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 async function copyText(text: string): Promise<boolean> {
@@ -31,95 +63,98 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-function roundedRect(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-): void {
-  context.beginPath();
-  if (typeof context.roundRect === "function") {
-    context.roundRect(x, y, width, height, radius);
-  } else {
-    context.rect(x, y, width, height);
-  }
-  context.closePath();
-}
-
-function downloadCard(summary: AttendanceSummary, name: string): void {
+/**
+ * Render kartu Story 9:16 dengan latar TRANSPARAN (bergaya Strava):
+ * label + angka besar bertumpuk, emoji per statistik, ikon, dan wordmark.
+ * Teks putih diberi bayangan tipis agar tetap terbaca di latar terang.
+ */
+function renderStoryCard(summary: AttendanceSummary, name: string): HTMLCanvasElement {
   const width = 1080;
-  const height = 1350;
+  const height = 1920;
+  const centerX = width / 2;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext("2d");
-  if (!context) return;
+  if (!context) throw new Error("Canvas tidak tersedia.");
 
-  const background = context.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, "#0f172a");
-  background.addColorStop(1, "#064e3b");
-  context.fillStyle = background;
-  context.fillRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height); // latar transparan
+  context.textAlign = "center";
+  context.textBaseline = "alphabetic";
+  context.shadowColor = "rgba(0, 0, 0, 0.35)";
+  context.shadowBlur = 10;
+  context.shadowOffsetY = 2;
 
-  context.fillStyle = "#34d399";
-  context.font = "600 40px ui-sans-serif, system-ui, sans-serif";
-  context.fillText("PRESENSI MINGGU INI", 80, 150);
+  // Header: label + rentang minggu.
+  context.fillStyle = "rgba(255, 255, 255, 0.85)";
+  context.font = `700 40px ${FONT_STACK}`;
+  context.fillText("PRESENSI KULIAH 🎓", centerX, 170);
+  context.fillStyle = "rgba(255, 255, 255, 0.7)";
+  context.font = `500 40px ${FONT_STACK}`;
+  context.fillText(
+    `${formatDueDate(summary.week.start)} – ${formatDueDate(summary.week.end)}`,
+    centerX,
+    232,
+  );
 
-  context.fillStyle = "rgba(255,255,255,0.75)";
-  context.font = "400 36px ui-sans-serif, system-ui, sans-serif";
-  context.fillText(`${formatDueDate(summary.week.start)} – ${formatDueDate(summary.week.end)}`, 80, 210);
+  // Blok statistik bertumpuk.
+  const stats = storyStats(summary);
+  let y = 440;
+  context.shadowBlur = 12;
+  for (const stat of stats) {
+    context.fillStyle = "rgba(255, 255, 255, 0.78)";
+    context.font = `600 44px ${FONT_STACK}`;
+    context.fillText(`${stat.emoji} ${stat.label.toUpperCase()}`, centerX, y);
 
+    context.fillStyle = "#ffffff";
+    context.font = `800 ${stat.valueFont ?? 124}px ${FONT_STACK}`;
+    context.fillText(stat.value, centerX, y + (stat.valueFont ? 92 : 136));
+    y += stat.valueFont ? 210 : 250;
+  }
+
+  // Ikon besar sebagai penanda, mirip siluet sepatu Strava.
+  context.shadowBlur = 16;
+  context.font = `150px ${FONT_STACK}`;
+  context.fillText("🏛️", centerX, 1580);
+
+  // Wordmark di bawah.
+  context.shadowBlur = 10;
   context.fillStyle = "#ffffff";
-  context.font = "700 220px ui-sans-serif, system-ui, sans-serif";
-  context.fillText(`${summary.week.rate}%`, 80, 440);
+  context.font = `800 64px ${FONT_STACK}`;
+  const wordmark = "TASKCANVAS";
+  const spacing = 10;
+  if ("letterSpacing" in context) {
+    (context as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${spacing}px`;
+  }
+  context.fillText(wordmark, centerX, 1760);
+  if ("letterSpacing" in context) {
+    (context as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px";
+  }
 
-  context.fillStyle = "rgba(255,255,255,0.85)";
-  context.font = "500 48px ui-sans-serif, system-ui, sans-serif";
-  context.fillText(`Hadir ${summary.week.attended}/${summary.week.scheduled} kelas`, 84, 520);
+  context.shadowColor = "transparent";
+  context.shadowBlur = 0;
+  context.shadowOffsetY = 0;
 
-  // Bar per hari Senin–Minggu.
-  const barWidth = 110;
-  const gap = 28;
-  const baseY = 900;
-  const maxBar = 240;
-  summary.week.days.forEach((day, index) => {
-    const x = 80 + index * (barWidth + gap);
-    const ratio = day.scheduled > 0 ? Math.min(1, day.attended / day.scheduled) : 0;
-    const barHeight = Math.max(12, Math.round(maxBar * ratio));
-    context.fillStyle = "rgba(255,255,255,0.14)";
-    roundedRect(context, x, baseY - maxBar, barWidth, maxBar, 20);
-    context.fill();
-    context.fillStyle = "#34d399";
-    roundedRect(context, x, baseY - barHeight, barWidth, barHeight, 20);
-    context.fill();
-    context.fillStyle = "rgba(255,255,255,0.75)";
-    context.font = "500 32px ui-sans-serif, system-ui, sans-serif";
-    context.fillText(DAY_INITIAL[index], x + barWidth / 2 - 10, baseY + 60);
-  });
+  // Nama kecil di paling bawah.
+  context.fillStyle = "rgba(255, 255, 255, 0.7)";
+  context.font = `500 34px ${FONT_STACK}`;
+  context.fillText(name, centerX, 1830);
 
-  context.fillStyle = "#ffffff";
-  context.font = "700 56px ui-sans-serif, system-ui, sans-serif";
-  context.fillText(`${summary.currentStreak} hari streak kehadiran`, 80, 1100);
+  return canvas;
+}
 
-  context.fillStyle = "rgba(255,255,255,0.6)";
-  context.font = "400 34px ui-sans-serif, system-ui, sans-serif";
-  context.fillText(`${name} · TaskCanvas`, 80, 1240);
-
+function downloadStoryCard(summary: AttendanceSummary, name: string): void {
+  const canvas = renderStoryCard(summary, name);
   const link = document.createElement("a");
   link.href = canvas.toDataURL("image/png");
-  link.download = `presensi-${summary.week.start}.png`;
+  link.download = `presensi-story-${summary.week.start}.png`;
   link.click();
 }
 
 export function ShareCard({ summary, name }: { summary: AttendanceSummary; name: string }) {
   const { toast } = useToast();
-  const sharing = useRef(false);
 
   async function handleShare() {
-    if (sharing.current) return;
-    sharing.current = true;
     const text = buildShareText(summary, name);
     try {
       if (typeof navigator.share === "function") {
@@ -131,29 +166,45 @@ export function ShareCard({ summary, name }: { summary: AttendanceSummary; name:
       }
     } catch {
       /* pengguna membatalkan share */
-    } finally {
-      sharing.current = false;
     }
   }
 
-  const topCourse = summary.week.courses.find((course) => course.scheduled > 0);
+  const bestCourse = summary.week.courses.find((course) => course.scheduled > 0);
+  const stats = [
+    { emoji: "🎓", label: "Kelas dihadiri", value: `${summary.week.attended}/${summary.week.scheduled}` },
+    { emoji: "🔥", label: "Streak", value: `${summary.currentStreak} hari` },
+    { emoji: "📈", label: "Persentase", value: `${summary.week.rate}%` },
+    { emoji: "✅", label: "Total hadir", value: `${summary.totalPresent}` },
+  ];
 
   return (
     <section className="overflow-hidden rounded-card border border-border shadow-soft">
       <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-900 p-6 text-white">
-        <p className="text-xs font-semibold tracking-[0.2em] text-emerald-300 uppercase">
-          Presensi Minggu Ini
-        </p>
+        <div className="flex items-center gap-2 text-emerald-300">
+          <Sparkles className="size-4" aria-hidden />
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase">Presensi Minggu Ini</p>
+        </div>
         <p className="mt-1 text-sm text-white/70">
           {formatDueDate(summary.week.start)} – {formatDueDate(summary.week.end)}
         </p>
 
-        <div className="mt-5 flex items-end gap-3">
-          <span className="font-title text-7xl leading-none text-white">{summary.week.rate}%</span>
-          <span className="pb-2 text-sm text-white/80">
-            hadir {summary.week.attended}/{summary.week.scheduled} kelas
-          </span>
+        <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <p className="text-xs font-semibold tracking-wide text-white/70 uppercase">
+                {stat.emoji} {stat.label}
+              </p>
+              <p className="font-title mt-0.5 text-4xl leading-none text-white">{stat.value}</p>
+            </div>
+          ))}
         </div>
+
+        {bestCourse ? (
+          <p className="mt-5 text-sm text-white/85">
+            🏆 Mata kuliah terbaik:{" "}
+            <strong className="font-semibold text-white">{bestCourse.course}</strong>
+          </p>
+        ) : null}
 
         <div className="mt-6 flex items-end gap-2">
           {summary.week.days.map((day, index) => (
@@ -182,23 +233,9 @@ export function ShareCard({ summary, name }: { summary: AttendanceSummary; name:
             </div>
           ))}
         </div>
-
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <span className="text-white/90">
-            <strong className="font-semibold text-white">{summary.currentStreak}</strong> hari streak
-          </span>
-          <span className="text-white/90">
-            <strong className="font-semibold text-white">{summary.totalPresent}</strong> total hadir
-          </span>
-          {topCourse ? (
-            <span className="text-white/90">
-              Terbaik: <strong className="font-semibold text-white">{topCourse.course}</strong>
-            </span>
-          ) : null}
-        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-t border-border bg-surface p-3">
+      <div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface p-3">
         <Button variant="secondary" size="sm" onClick={() => void handleShare()}>
           <Share2 className="size-4" aria-hidden />
           Bagikan
@@ -218,10 +255,11 @@ export function ShareCard({ summary, name }: { summary: AttendanceSummary; name:
         >
           Salin ringkasan
         </Button>
-        <Button variant="outline" size="sm" onClick={() => downloadCard(summary, name)}>
+        <Button variant="outline" size="sm" onClick={() => downloadStoryCard(summary, name)}>
           <Download className="size-4" aria-hidden />
-          Unduh PNG
+          Unduh PNG Story
         </Button>
+        <span className="text-muted ml-auto text-xs">PNG transparan · 9:16</span>
       </div>
     </section>
   );
