@@ -59,4 +59,36 @@ describe("parseScheduleText", () => {
     const result = parseScheduleText(`Senin 07:00-09:00 ${longCourse}`);
     expect(result[0]!.course.length).toBe(80);
   });
+
+  it("membuang gelar dosen (Prof/Ir) dan menyisakan mata kuliah + ruang", () => {
+    const result = parseScheduleText(
+      "Senin 08:00-10:00 Jaringan Komputer (C) Prof. Ir. Alexander Wijaya A-101",
+    );
+    expect(result[0]).toMatchObject({
+      weekday: 1,
+      course: "Jaringan Komputer (C)",
+      room: "A-101",
+    });
+  });
+
+  it("membuang nama dosen setelah kode kelas (format SIAKAD)", () => {
+    const result = parseScheduleText(
+      "Selasa 10:00-12:00 Pemrograman Web (D) Dengklek, S.T., M.T. GK2",
+    );
+    expect(result[0]).toMatchObject({ course: "Pemrograman Web (D)", room: "GK2" });
+  });
+
+  it("membuang nama & gelar dosen walau tanpa kode kelas", () => {
+    const result = parseScheduleText("Kamis 13:00-15:00 Struktur Data Prof. Budi");
+    expect(result[0]).toMatchObject({ course: "Struktur Data", room: null });
+  });
+
+  it("membuang deretan gelar panjang pada nama dosen", () => {
+    const result = parseScheduleText(
+      "Rabu 08:00-10:00 Konsep Pengembangan Perangkat Lunak (B) Bintang Nuralamsyah S.Kom., M.Kom.,",
+    );
+    expect(result[0]).toMatchObject({
+      course: "Konsep Pengembangan Perangkat Lunak (B)",
+    });
+  });
 });

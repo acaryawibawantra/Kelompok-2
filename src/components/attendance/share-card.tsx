@@ -14,10 +14,11 @@ const FONT = "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 type Orientation = "portrait" | "landscape";
 type Layout = "chart" | "stack";
-type TemplateId = "chart-dark" | "chart-clear" | "chart-light" | "stack-dark" | "stack-clear";
+type TemplateId = "chart-white" | "chart-black" | "stack-white" | "stack-black";
 
 interface Theme {
-  background: string | null;
+  /** Transparan: tidak ada latar yang digambar. */
+  background: null;
   text: string;
   subtext: string;
   track: string;
@@ -26,34 +27,24 @@ interface Theme {
   accent: string;
 }
 
-const THEMES: Record<"transparent" | "dark" | "light", Theme> = {
-  transparent: {
-    background: null,
-    text: "#ffffff",
-    subtext: "rgba(255, 255, 255, 0.62)",
-    track: "rgba(255, 255, 255, 0.16)",
-    barTop: "#34d399",
-    barBottom: "#059669",
-    accent: "#34d399",
-  },
-  dark: {
-    background: "#0b1220",
-    text: "#ffffff",
-    subtext: "rgba(255, 255, 255, 0.58)",
-    track: "rgba(255, 255, 255, 0.10)",
-    barTop: "#34d399",
-    barBottom: "#0f766e",
-    accent: "#34d399",
-  },
-  light: {
-    background: "#f6f5f2",
-    text: "#17161a",
-    subtext: "rgba(23, 22, 26, 0.55)",
-    track: "rgba(23, 22, 26, 0.08)",
-    barTop: "#2dd4bf",
-    barBottom: "#0f766e",
-    accent: "#0f766e",
-  },
+const WHITE_TEXT: Theme = {
+  background: null,
+  text: "#ffffff",
+  subtext: "rgba(255, 255, 255, 0.62)",
+  track: "rgba(255, 255, 255, 0.18)",
+  barTop: "#34d399",
+  barBottom: "#059669",
+  accent: "#34d399",
+};
+
+const BLACK_TEXT: Theme = {
+  background: null,
+  text: "#17161a",
+  subtext: "rgba(23, 22, 26, 0.6)",
+  track: "rgba(23, 22, 26, 0.12)",
+  barTop: "#10b981",
+  barBottom: "#047857",
+  accent: "#047857",
 };
 
 interface TemplateDef {
@@ -63,11 +54,10 @@ interface TemplateDef {
 }
 
 const TEMPLATES: Record<TemplateId, TemplateDef> = {
-  "chart-dark": { label: "Grafik Gelap", layout: "chart", theme: THEMES.dark },
-  "chart-clear": { label: "Grafik Transparan", layout: "chart", theme: THEMES.transparent },
-  "chart-light": { label: "Grafik Terang", layout: "chart", theme: THEMES.light },
-  "stack-dark": { label: "Angka Gelap", layout: "stack", theme: THEMES.dark },
-  "stack-clear": { label: "Angka Transparan", layout: "stack", theme: THEMES.transparent },
+  "chart-white": { label: "Grafik Putih", layout: "chart", theme: WHITE_TEXT },
+  "chart-black": { label: "Grafik Hitam", layout: "chart", theme: BLACK_TEXT },
+  "stack-white": { label: "Angka Putih", layout: "stack", theme: WHITE_TEXT },
+  "stack-black": { label: "Angka Hitam", layout: "stack", theme: BLACK_TEXT },
 };
 
 const TEMPLATE_OPTIONS = (Object.keys(TEMPLATES) as TemplateId[]).map((value) => ({
@@ -401,10 +391,6 @@ function renderAttendanceCard(
   if (!context) throw new Error("Canvas tidak tersedia.");
 
   context.clearRect(0, 0, width, height);
-  if (theme.background) {
-    context.fillStyle = theme.background;
-    context.fillRect(0, 0, width, height);
-  }
 
   const dims: Dims = { width, height, pad, portrait, centerX: width / 2 };
   if (template.layout === "chart") {
@@ -427,7 +413,7 @@ const CHECKERBOARD = {
 export function ShareCard({ summary, name }: { summary: AttendanceSummary; name: string }) {
   const { toast } = useToast();
   const previewRef = useRef<HTMLCanvasElement>(null);
-  const [template, setTemplate] = useState<TemplateId>("chart-dark");
+  const [template, setTemplate] = useState<TemplateId>("chart-white");
   const [orientation, setOrientation] = useState<Orientation>("portrait");
 
   const portrait = orientation === "portrait";

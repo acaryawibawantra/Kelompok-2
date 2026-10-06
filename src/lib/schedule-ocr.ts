@@ -31,6 +31,40 @@ const ROOM_RE = /^([A-Za-z]{0,3}[-. ]?\d{1,3}[A-Za-z]?)$/;
 // Satu regex untuk membuang semua kata hari sekaligus.
 const ANY_DAY_RE = new RegExp(DAY_MATCHERS.map((matcher) => matcher.re.source).join("|"), "gi");
 
+// Kata umum non-mata-kuliah yang sering ikut terbaca OCR.
+const NOISE_WORD_RE =
+  /\b(hari|ruang|r\.|kelas|mk|matkul|mata kuliah|dosen|pengampu|sks|semester|smt|ganjil|genap|wib|jam)\b/gi;
+
+// Gelar/tanda dosen: Prof, Dr, Ir, S.Kom, M.Kom, M.T, S.T, Ph.D, dst.
+const DEGREE_WORD = "(?:kom|t|si|sn|pd|kes|ak|h|sos|ag|ip|ikom|ba|mm|sc|eng)";
+const LECTURER_MARKER_RE = new RegExp(
+  `\\b(?:prof|dr|drs|dra|ir|dosen|pengampu|ph\\.?\\s?d|m\\.?\\s?${DEGREE_WORD}|s\\.?\\s?${DEGREE_WORD}|apt|ns)\\b`,
+  "i",
+);
+
+// Buang nama & gelar dosen, sisakan hanya nama mata kuliah (dan kode kelas).
+function stripLecturer(text: string): string {
+  let out = text;
+
+  // 1) Buang mulai dari gelar/tanda dosen pertama.
+  const marker = out.match(LECTURER_MARKER_RE);
+  if (marker && marker.index !== undefined) {
+    out = out.slice(0, marker.index);
+  }
+
+  // 2) Bila ada penanda kelas "(X)", buang sisa teks setelahnya (nama dosen).
+  const lastParen = out.lastIndexOf(")");
+  if (lastParen >= 0 && out.slice(lastParen + 1).trim().length > 0) {
+    out = out.slice(0, lastParen + 1);
+  }
+
+  // 3) Bersihkan pemisah menggantung di ujung.
+  return out
+    .replace(/[\s,;:/\-–—]+$/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalizeTime(hour: string, minute: string): string {
   return `${hour.padStart(2, "0")}:${minute}`;
 }
@@ -72,7 +106,7 @@ export function parseScheduleText(text: string): ParsedSchedule[] {
     let rest = line
       .replace(TIME_RANGE_RE, " ")
       .replace(ANY_DAY_RE, " ")
-      .replace(/\b(hari|ruang|r\.|kelas|mk|matkul|mata kuliah)\b/gi, " ")
+      .replace(NOISE_WORD_RE, " ")
       .replace(/\s+/g, " ")
       .trim();
 
@@ -85,6 +119,9 @@ export function parseScheduleText(text: string): ParsedSchedule[] {
       tokens.pop();
       rest = tokens.join(" ").trim();
     }
+
+    // Buang nama & gelar dosen: sisakan mata kuliah saja.
+    rest = stripLecturer(rest);
 
     if (rest === "") continue;
     // Batasi agar selalu lolos validasi API (course maks 80, room maks 40).
