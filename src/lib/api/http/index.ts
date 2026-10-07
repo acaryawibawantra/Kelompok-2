@@ -2,6 +2,13 @@ import { ApiError, type ApiErrorCode } from "../errors";
 import type { TaskCanvasApi, TaskMutationResult, ProjectDetail } from "../types";
 import type {
   ArchivedTask,
+  AttendanceRecord,
+  AttendanceShare,
+  AttendanceSummary,
+  ClassSchedule,
+  CreateAttendanceInput,
+  CreateAttendanceShareInput,
+  CreateClassScheduleInput,
   CreateInviteInput,
   CreateProjectInput,
   CreateSubjectInput,
@@ -11,11 +18,14 @@ import type {
   LoginInput,
   Member,
   Project,
+  PublicRecap,
   RegisterInput,
   ScheduledTask,
   StreakSummary,
   Subject,
   Task,
+  UpdateAttendanceInput,
+  UpdateClassScheduleInput,
   UpdateMeInput,
   UpdateMemberRoleInput,
   UpdateProjectInput,
@@ -157,5 +167,40 @@ export const httpApi: TaskCanvasApi = {
   },
   streak: {
     get: () => request<StreakSummary>("/streak"),
+  },
+  schedules: {
+    list: () => request<ClassSchedule[]>("/schedules"),
+    create: (input: CreateClassScheduleInput) =>
+      request<ClassSchedule>("/schedules", body(input)),
+    createMany: (items: CreateClassScheduleInput[]) =>
+      request<ClassSchedule[]>("/schedules/bulk", body({ items })),
+    update: (id, input: UpdateClassScheduleInput) =>
+      request<ClassSchedule>(`/schedules/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    remove: (id) =>
+      request<{ ok: true }>(`/schedules/${id}`, { method: "DELETE" }).then(() => undefined),
+    removeAll: () =>
+      request<{ ok: true }>("/schedules", { method: "DELETE" }).then(() => undefined),
+  },
+  attendance: {
+    list: (range) => {
+      const params = new URLSearchParams();
+      if (range?.from) params.set("from", range.from);
+      if (range?.to) params.set("to", range.to);
+      const query = params.toString();
+      return request<AttendanceRecord[]>(`/attendance${query ? `?${query}` : ""}`);
+    },
+    checkIn: (input: CreateAttendanceInput) =>
+      request<AttendanceRecord>("/attendance", body(input)),
+    update: (id, input: UpdateAttendanceInput) =>
+      request<AttendanceRecord>(`/attendance/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }),
+    remove: (id) =>
+      request<{ ok: true }>(`/attendance/${id}`, { method: "DELETE" }).then(() => undefined),
+    summary: () => request<AttendanceSummary>("/attendance/summary"),
+    share: (input: CreateAttendanceShareInput) =>
+      request<AttendanceShare>("/attendance/share", body(input)),
+    recap: (token: string) => request<PublicRecap>(`/public/recap/${token}`),
   },
 };

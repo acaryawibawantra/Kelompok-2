@@ -66,7 +66,7 @@ export default function SettingsPage() {
           <AccountSection />
         </SettingsCard>
 
-        <SettingsCard title="Aplikasi" description="Pasang TaskCanvas di perangkatmu.">
+        <SettingsCard title="Aplikasi" description="Pasang Semangat Brow di perangkatmu.">
           <InstallAppButton />
         </SettingsCard>
       </div>

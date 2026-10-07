@@ -13,7 +13,7 @@ import {
 } from "date-fns";
 import { WEEKDAYS, WEEK_OPTIONS, dateKey, monthMatrix } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
-import type { Priority, ScheduledTask } from "@/types";
+import type { ClassSchedule, Priority, ScheduledTask } from "@/types";
 
 const priorityDot: Record<Priority, string> = {
   high: "bg-danger",
@@ -35,10 +35,11 @@ export interface MonthGridProps {
   month: Date;
   selected: Date;
   tasksByDay: Map<string, ScheduledTask[]>;
+  sessionsByDay: Map<string, ClassSchedule[]>;
   onSelect: (date: Date) => void;
 }
 
-export function MonthGrid({ month, selected, tasksByDay, onSelect }: MonthGridProps) {
+export function MonthGrid({ month, selected, tasksByDay, sessionsByDay, onSelect }: MonthGridProps) {
   const weeks = useMemo(() => {
     const days = monthMatrix(month);
     const result: Date[][] = [];
@@ -113,11 +114,12 @@ export function MonthGrid({ month, selected, tasksByDay, onSelect }: MonthGridPr
             {week.map((day) => {
               const key = dateKey(day);
               const dayTasks = tasksByDay.get(key) ?? [];
+              const daySessions = sessionsByDay.get(key) ?? [];
               const inMonth = isSameMonth(day, month);
               const isSelected = isSameDay(day, selected);
               const today = isToday(day);
               const openCount = dayTasks.filter((task) => !task.isDone).length;
-              const preview = dayTasks.slice(0, 2);
+              const totalItems = dayTasks.length + daySessions.length;
 
               return (
                 <button
@@ -130,7 +132,9 @@ export function MonthGrid({ month, selected, tasksByDay, onSelect }: MonthGridPr
                   }}
                   tabIndex={isSelected ? 0 : -1}
                   aria-selected={isSelected}
-                  aria-label={`${day.getDate()}${dayTasks.length > 0 ? `, ${dayTasks.length} task` : ""}`}
+                  aria-label={`${day.getDate()}${
+                    totalItems > 0 ? `, ${totalItems} agenda` : ""
+                  }${daySessions.length > 0 ? `, ${daySessions.length} kelas` : ""}`}
                   aria-current={today ? "date" : undefined}
                   onClick={() => onSelect(day)}
                   onKeyDown={(event) => handleKeyDown(event, day)}
@@ -155,19 +159,19 @@ export function MonthGrid({ month, selected, tasksByDay, onSelect }: MonthGridPr
                     >
                       {day.getDate()}
                     </span>
-                    {dayTasks.length > 0 ? (
+                    {totalItems > 0 ? (
                       <span
                         className={cn(
                           "rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums sm:hidden",
                           openCount > 0 ? "bg-brand-100 text-brand-700" : "bg-surface text-muted",
                         )}
                       >
-                        {dayTasks.length}
+                        {totalItems}
                       </span>
                     ) : null}
                   </span>
 
-                  {dayTasks.length > 0 ? (
+                  {totalItems > 0 ? (
                     <>
                       <span className="flex flex-wrap items-center gap-1 sm:hidden" aria-hidden>
                         {dayTasks.slice(0, 4).map((task) => (
@@ -176,13 +180,26 @@ export function MonthGrid({ month, selected, tasksByDay, onSelect }: MonthGridPr
                             className={cn("size-1.5 rounded-full", dotColor(task))}
                           />
                         ))}
-                        {dayTasks.length > 4 ? (
-                          <span className="text-muted text-[9px]">+{dayTasks.length - 4}</span>
+                        {daySessions.length > 0 ? (
+                          <span
+                            className={cn(
+                              "size-1.5 rounded-full bg-emerald-500",
+                              dayTasks.length >= 4 && "hidden",
+                            )}
+                          />
+                        ) : null}
+                        {totalItems > 4 ? (
+                          <span className="text-muted text-[9px]">+{totalItems - 4}</span>
                         ) : null}
                       </span>
 
                       <span className="hidden flex-1 flex-col gap-0.5 sm:flex" aria-hidden>
-                        {preview.map((task) => (
+                        {daySessions[0] ? (
+                          <span className="bg-surface-2/80 text-foreground truncate rounded border-l-2 border-l-emerald-500 px-1.5 py-0.5 text-[10px] font-medium">
+                            {daySessions[0].start} {daySessions[0].course}
+                          </span>
+                        ) : null}
+                        {dayTasks.slice(0, daySessions[0] ? 1 : 2).map((task) => (
                           <span
                             key={task.id}
                             className={cn(
@@ -194,11 +211,16 @@ export function MonthGrid({ month, selected, tasksByDay, onSelect }: MonthGridPr
                             {task.title}
                           </span>
                         ))}
-                        {dayTasks.length > preview.length ? (
-                          <span className="text-muted px-1 text-[10px]">
-                            +{dayTasks.length - preview.length} lagi
-                          </span>
-                        ) : null}
+                        {(() => {
+                          // Chip maksimal 2: sesi pertama (jika ada) + task pengisi.
+                          const shown =
+                            (daySessions[0] ? 1 : 0) +
+                            Math.min(dayTasks.length, daySessions[0] ? 1 : 2);
+                          const more = totalItems - shown;
+                          return more > 0 ? (
+                            <span className="text-muted px-1 text-[10px]">+{more} lagi</span>
+                          ) : null;
+                        })()}
                       </span>
                     </>
                   ) : null}

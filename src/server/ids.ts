@@ -7,3 +7,7 @@ export function newId(prefix: string): string {
 export function newToken(): string {
   return `tc-inv-${nanoid(24)}`;
 }
+
+export function newRecapToken(): string {
+  return `tc-recap-${nanoid(22)}`;
+}

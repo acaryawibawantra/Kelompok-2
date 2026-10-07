@@ -27,7 +27,7 @@ export function DashboardSummary() {
       <div className="rounded-card border border-border bg-surface p-5 shadow-soft">
         <p className="text-sm text-muted">Halo,</p>
         <p className="font-title text-3xl leading-tight text-foreground">
-          {user?.name ?? "Sobat TaskCanvas"}
+          {user?.name ?? "Sobat Semangat Brow"}
         </p>
         <p className="mt-0.5 text-xs text-muted">{formatDueLabel()}</p>
 

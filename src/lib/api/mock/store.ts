@@ -1,4 +1,5 @@
 import type { Invite, Subject, Task, User } from "@/types";
+import type { AttendanceRecord, ClassSchedule } from "@/types";
 import type { Role } from "@/types";
 import { ApiError } from "@/lib/api/errors";
 import { createSeedDb } from "./seed";
@@ -30,6 +31,25 @@ export interface ActivityRow {
   count: number;
 }
 
+// Row internal jadwal: bentuk API ditambah userId pemiliknya.
+export interface ScheduleRow extends ClassSchedule {
+  userId: string;
+}
+
+// Row internal presensi: bentuk API ditambah userId pemiliknya.
+export interface AttendanceRow extends AttendanceRecord {
+  userId: string;
+}
+
+// Row internal token rekap publik.
+export interface AttendanceShareRow {
+  id: string;
+  userId: string;
+  weekStart: string;
+  token: string;
+  createdAt: string;
+}
+
 export interface MockDb {
   users: User[];
   currentUserId: string | null;
@@ -39,6 +59,9 @@ export interface MockDb {
   tasks: Task[];
   invites: Invite[];
   activity: ActivityRow[];
+  schedules: ScheduleRow[];
+  attendance: AttendanceRow[];
+  shares: AttendanceShareRow[];
 }
 
 const STORAGE_KEY = "tc-mock-db-v1";
@@ -60,6 +83,10 @@ export function getDb(): MockDb {
   if (cache) return cache;
   const stored = readStorage();
   cache = stored ?? createSeedDb(new Date());
+  // Data lama yang tersimpan sebelum fitur jadwal ada belum punya field ini.
+  if (!Array.isArray(cache.schedules)) cache.schedules = [];
+  if (!Array.isArray(cache.attendance)) cache.attendance = [];
+  if (!Array.isArray(cache.shares)) cache.shares = [];
   if (!stored) saveDb(cache);
   return cache;
 }

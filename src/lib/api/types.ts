@@ -1,5 +1,12 @@
 import type {
   ArchivedTask,
+  AttendanceRecord,
+  AttendanceShare,
+  AttendanceSummary,
+  ClassSchedule,
+  CreateAttendanceInput,
+  CreateAttendanceShareInput,
+  CreateClassScheduleInput,
   CreateInviteInput,
   CreateProjectInput,
   CreateSubjectInput,
@@ -10,11 +17,14 @@ import type {
   Member,
   Project,
   ProjectScope,
+  PublicRecap,
   RegisterInput,
   ScheduledTask,
   StreakSummary,
   Subject,
   Task,
+  UpdateAttendanceInput,
+  UpdateClassScheduleInput,
   UpdateMeInput,
   UpdateMemberRoleInput,
   UpdateProjectInput,
@@ -82,5 +92,22 @@ export interface TaskCanvasApi {
   };
   streak: {
     get(): Promise<StreakSummary>;
+  };
+  schedules: {
+    list(): Promise<ClassSchedule[]>;
+    create(input: CreateClassScheduleInput): Promise<ClassSchedule>;
+    createMany(items: CreateClassScheduleInput[]): Promise<ClassSchedule[]>;
+    update(id: string, input: UpdateClassScheduleInput): Promise<ClassSchedule>;
+    remove(id: string): Promise<void>;
+    removeAll(): Promise<void>;
+  };
+  attendance: {
+    list(range?: { from?: string; to?: string }): Promise<AttendanceRecord[]>;
+    checkIn(input: CreateAttendanceInput): Promise<AttendanceRecord>;
+    update(id: string, input: UpdateAttendanceInput): Promise<AttendanceRecord>;
+    remove(id: string): Promise<void>;
+    summary(): Promise<AttendanceSummary>;
+    share(input: CreateAttendanceShareInput): Promise<AttendanceShare>;
+    recap(token: string): Promise<PublicRecap>;
   };
 }

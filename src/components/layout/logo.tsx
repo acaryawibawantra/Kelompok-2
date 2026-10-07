@@ -7,7 +7,7 @@ export function Logo({ collapsed = false, className }: { collapsed?: boolean; cl
     <Link
       href="/"
       className={cn("flex items-center gap-2 rounded-xl px-1 py-1", className)}
-      aria-label="TaskCanvas — beranda"
+      aria-label="Semangat Brow — beranda"
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-600 text-white shadow-soft">
         <Sparkles className="size-4.5" aria-hidden />

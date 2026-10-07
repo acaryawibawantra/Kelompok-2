@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Archive,
+  CalendarCheck2,
   CalendarDays,
   Flame,
   FolderKanban,
+  GraduationCap,
   LayoutGrid,
   Mail,
   PanelLeftClose,
@@ -33,6 +35,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "My Space", icon: LayoutGrid },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/jadwal", label: "Jadwal Kuliah", icon: GraduationCap },
+  { href: "/presensi", label: "Presensi", icon: CalendarCheck2 },
   { href: "/archive", label: "Archive", icon: Archive },
   { href: "/streak", label: "Streak", icon: Flame },
   { href: "/invites", label: "Undangan", icon: Mail },

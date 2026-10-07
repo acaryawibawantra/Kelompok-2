@@ -26,12 +26,12 @@ const lora = Lora({
 
 export const metadata: Metadata = {
   title: {
-    default: "TaskCanvas",
-    template: "%s · TaskCanvas",
+    default: "Semangat Brow",
+    template: "%s · Semangat Brow",
   },
   description:
-    "TaskCanvas — kelola project, subject, dan task dalam satu canvas visual. Streak harian, target, dan kolaborasi.",
-  applicationName: "TaskCanvas",
+    "Semangat Brow — kelola project, subject, dan task dalam satu canvas visual. Streak harian, target, dan kolaborasi.",
+  applicationName: "Semangat Brow",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "TaskCanvas",
+    title: "Semangat Brow",
     statusBarStyle: "default",
   },
 };

@@ -14,8 +14,8 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 migrations apply taskcanvas-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply taskcanvas-db --remote",
+    "db:migrate:local": "wrangler d1 migrations apply semangatbro-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply semangatbro-db --remote",
     "worker:dev": "wrangler dev --config worker-realtime/wrangler.jsonc --port 8788",
     "worker:deploy": "wrangler deploy --config worker-realtime/wrangler.jsonc",
     "lint": "eslint .",
@@ -43,6 +43,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.7.0",
+    "tesseract.js": "^7.0.0",
     "zod": "^4.6.5",
     "zustand": "^5.0.15"
   },
