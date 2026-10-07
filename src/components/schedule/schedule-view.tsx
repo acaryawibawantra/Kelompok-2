@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { ScheduleFormModal } from "./schedule-form-modal";
 import { ImportScheduleModal } from "./import-schedule-modal";
 import { AttendanceTodayPanel } from "@/components/attendance/today-panel";
-import { useDeleteSchedule, useSchedules } from "@/lib/queries";
+import { useDeleteAllSchedules, useDeleteSchedule, useSchedules } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import type { ClassSchedule } from "@/types";
 
@@ -23,10 +23,12 @@ const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 export function ScheduleView() {
   const schedulesQuery = useSchedules();
   const deleteSchedule = useDeleteSchedule();
+  const deleteAllSchedules = useDeleteAllSchedules();
   const { toast } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [clearAllOpen, setClearAllOpen] = useState(false);
   const [editing, setEditing] = useState<ClassSchedule | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ClassSchedule | null>(null);
 
@@ -67,6 +69,16 @@ export function ScheduleView() {
     });
   }
 
+  function confirmClearAll() {
+    deleteAllSchedules.mutate(undefined, {
+      onSuccess: () => {
+        toast({ title: "Semua jadwal dihapus" });
+        setClearAllOpen(false);
+      },
+      onError: () => toast({ title: "Gagal menghapus jadwal", tone: "error" }),
+    });
+  }
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <PageHeader
@@ -79,6 +91,16 @@ export function ScheduleView() {
         }
         actions={
           <>
+            {schedules.length > 0 ? (
+              <Button
+                variant="ghost"
+                onClick={() => setClearAllOpen(true)}
+                className="hover:text-danger text-muted"
+              >
+                <Trash2 className="size-4" aria-hidden />
+                Hapus Semua
+              </Button>
+            ) : null}
             <Button variant="secondary" onClick={() => setImportOpen(true)}>
               <ScanLine className="size-4" aria-hidden />
               Impor Screenshot
@@ -173,7 +195,7 @@ export function ScheduleView() {
                               <p className="text-muted truncate text-xs">Ruang {schedule.room}</p>
                             ) : null}
                           </div>
-                          <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                          <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -215,6 +237,16 @@ export function ScheduleView() {
         description={`Hapus kelas "${pendingDelete?.course ?? ""}" dari jadwal mingguan?`}
         confirmLabel="Ya, hapus"
         loading={deleteSchedule.isPending}
+      />
+
+      <ConfirmDialog
+        open={clearAllOpen}
+        onClose={() => setClearAllOpen(false)}
+        onConfirm={confirmClearAll}
+        title="Hapus Semua Jadwal"
+        description={`Hapus ${schedules.length} jadwal kuliah? Kamu bisa memasukkan datanya ulang setelah ini.`}
+        confirmLabel="Ya, hapus semua"
+        loading={deleteAllSchedules.isPending}
       />
     </div>
   );

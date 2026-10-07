@@ -212,6 +212,40 @@ Format: tanggal · keputusan · alasan · dampak. Sumber kebenaran: `docs/PRD.md
 
 ---
 
+## 2026-10-06 — Fitur Jadwal Kuliah (di luar PRD, diminta user)
+
+### S1. Jadwal kuliah mingguan per-user (Tahap A fitur presensi)
+- **Keputusan:** menambah domain "Jadwal Kuliah": halaman `/jadwal` (CRUD kelas mingguan berulang —
+  hari, jam mulai/selesai, mata kuliah, ruang), tabel `class_schedules`, endpoint
+  `GET/POST /api/schedules` dan `PATCH/DELETE /api/schedules/:id`, skema Zod
+  `lib/schemas/schedule.ts`, implementasi mock + http, hooks `lib/queries/schedules.ts`.
+- **Alasan:** diminta user sebagai fondasi fitur presensi kuliah (rencana berikutnya: absen dengan
+  bukti foto kamera, streak kehadiran, kartu share mingguan ala Strava). PRD v2 tidak mencakupnya.
+- **Dampak:**
+  - Data bersifat **per-user** (bukan per-project) sehingga tidak memakai `requireMember`; cukup
+    verifikasi sesi + `where user_id` di service.
+  - Tidak ada broadcast realtime (bukan resource project yang kolaboratif).
+  - Sesi kuliah juga **ditampilkan di Calendar**: chip hijau emerald di grid bulanan (bersanding
+    dengan task tenggat) dan bagian "Kelas" di DayAgenda.
+  - Mock lama di localStorage (`tc-mock-db-v1`) di-backfill field `schedules: []` saat dibuka.
+
+### S2. Impor jadwal via OCR Tesseract.js (Tahap B)
+- **Keputusan:** tombol "Impor Screenshot" di `/jadwal` membaca gambar jadwal memakai
+  **tesseract.js 7** sepenuhnya di sisi klien (dynamic import), hasilnya diparse
+  `lib/schedule-ocr.ts` (fungsi murni + unit test) menjadi **draf yang bisa dikoreksi** sebelum
+  disimpan lewat `POST /api/schedules/bulk` (`createMany` di interface API, mock & http).
+- **Alasan:** input manual 8–10 kelas melelahkan; OCR mengisi 80% dan user mengoreksi sisanya.
+  Murni client-side = tanpa biaya API eksternal, konsisten dengan arsitektur tanpa service luar.
+- **Dampak:**
+  - Worker WASM + data bahasa (`ind+eng`) dimuat dari CDN jsdelivr pada pemakaian pertama
+    (default tesseract.js, versi sinkron dengan package); butuh internet sekali, lalu di-cache
+    browser. Bundle utama tidak membengkak karena dynamic import.
+  - Parser sengaja toleran (rentang jam multi-format, blok per hari, heuristik kode ruang) namun
+    **draf selalu ditinjau user** sebelum disimpan — OCR tidak pernah menulis langsung ke DB.
+  - Bulk create dibatasi 50 item per permintaan (skema Zod), total jadwal tetap max 100/user.
+
+---
+
 ## Pertanyaan terbuka
 - Q1. Default project view — asumsi **Board**.
 - Q2. Login Google — asumsi **tidak** di v2.

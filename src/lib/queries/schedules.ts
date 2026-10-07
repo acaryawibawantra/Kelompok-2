@@ -54,3 +54,13 @@ export function useDeleteSchedule() {
     },
   });
 }
+
+export function useDeleteAllSchedules() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.schedules.removeAll(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.schedules });
+    },
+  });
+}

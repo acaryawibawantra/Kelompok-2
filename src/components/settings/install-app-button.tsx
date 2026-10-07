@@ -14,7 +14,7 @@ export function InstallAppButton() {
       <div>
         <p className="text-sm font-medium text-foreground">Install App</p>
         <p className="text-xs text-muted">
-          Pasang TaskCanvas sebagai aplikasi agar bisa dibuka layaknya app native.
+          Pasang Semangat Brow sebagai aplikasi agar bisa dibuka layaknya app native.
         </p>
       </div>
       {installed ? (

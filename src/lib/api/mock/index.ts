@@ -1,9 +1,11 @@
 import { nanoid } from "nanoid";
 import type {
   AttendanceRecord,
+  AttendanceShare,
   AttendanceSummary,
   ClassSchedule,
   CreateAttendanceInput,
+  CreateAttendanceShareInput,
   CreateClassScheduleInput,
   CreateInviteInput,
   CreateProjectInput,
@@ -14,6 +16,7 @@ import type {
   Member,
   Project,
   ProjectScope,
+  PublicRecap,
   RegisterInput,
   StreakSummary,
   Subject,
@@ -34,6 +37,7 @@ import { colorFromId } from "@/lib/utils";
 import { positionBetween } from "@/lib/ordering";
 import type { ArchivedTask, DueTask, ScheduledTask } from "@/types";
 import type { ProjectDetail, TaskCanvasApi, TaskMutationResult } from "@/lib/api/types";
+import { addDays, format, parseISO } from "date-fns";
 import {
   getDb,
   requireUser,
@@ -908,6 +912,14 @@ export const mockApi: TaskCanvasApi = {
       db.schedules = db.schedules.filter((item) => item.id !== id);
       saveDb(db);
     },
+
+    async removeAll() {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      db.schedules = db.schedules.filter((item) => item.userId !== user.id);
+      saveDb(db);
+    },
   },
 
   attendance: {
@@ -1027,6 +1039,69 @@ export const mockApi: TaskCanvasApi = {
         timezone: user.timezone,
         now: new Date(),
       });
+    },
+
+    async share(input: CreateAttendanceShareInput): Promise<AttendanceShare> {
+      await simulate();
+      const db = getDb();
+      const user = requireUser(db);
+      const existing = db.shares.find(
+        (item) => item.userId === user.id && item.weekStart === input.weekStart,
+      );
+      if (existing) return { token: existing.token, path: `/r/${existing.token}` };
+      const token = `tc-recap-${nanoid(22)}`;
+      db.shares.push({
+        id: `sh_${nanoid(8)}`,
+        userId: user.id,
+        weekStart: input.weekStart,
+        token,
+        createdAt: nowIso(),
+      });
+      saveDb(db);
+      return { token, path: `/r/${token}` };
+    },
+
+    async recap(token: string): Promise<PublicRecap> {
+      await simulate();
+      const db = getDb();
+      const share = db.shares.find((item) => item.token === token);
+      if (!share) {
+        throw new ApiError("NOT_FOUND", "Rekap tidak ditemukan atau tautan tidak valid.");
+      }
+      const user = db.users.find((item) => item.id === share.userId);
+      if (!user) throw new ApiError("NOT_FOUND", "Pengguna tidak ditemukan.");
+
+      const weekEnd = format(addDays(parseISO(`${share.weekStart}T00:00:00Z`), 6), "yyyy-MM-dd");
+      const records = db.attendance
+        .filter(
+          (item) =>
+            item.userId === user.id && item.date >= share.weekStart && item.date <= weekEnd,
+        )
+        .sort(
+          (a, b) => b.date.localeCompare(a.date) || b.checkedInAt.localeCompare(a.checkedInAt),
+        )
+        .map(toPublicAttendance);
+
+      const summary = computeAttendanceSummary({
+        records: records.map((item) => ({
+          date: item.date,
+          status: item.status,
+          course: item.course,
+        })),
+        schedules: db.schedules
+          .filter((item) => item.userId === user.id)
+          .map((item) => ({ weekday: item.weekday, course: item.course })),
+        timezone: user.timezone,
+        now: new Date(`${weekEnd}T12:00:00Z`),
+      });
+
+      return {
+        name: user.name,
+        avatarColor: user.avatarColor,
+        weekStart: share.weekStart,
+        summary,
+        records,
+      };
     },
   },
 };

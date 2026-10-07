@@ -1,6 +1,6 @@
 {
-  "name": "TaskCanvas — Canvas Task Management",
-  "short_name": "TaskCanvas",
+  "name": "Semangat Brow — Kelola Kuliah & Tugas",
+  "short_name": "Semangat Brow",
   "description": "Kelola project, subject, dan task dalam canvas visual dengan streak harian dan kolaborasi.",
   "start_url": "/",
   "scope": "/",

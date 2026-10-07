@@ -47,4 +47,7 @@ export type {
   AttendanceSummary,
   AttendanceWeekDay,
   AttendanceShareCourse,
+  CreateAttendanceShareInput,
+  AttendanceShare,
+  PublicRecap,
 } from "@/lib/schemas/attendance";

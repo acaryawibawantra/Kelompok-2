@@ -1,9 +1,11 @@
 import type {
   ArchivedTask,
   AttendanceRecord,
+  AttendanceShare,
   AttendanceSummary,
   ClassSchedule,
   CreateAttendanceInput,
+  CreateAttendanceShareInput,
   CreateClassScheduleInput,
   CreateInviteInput,
   CreateProjectInput,
@@ -15,6 +17,7 @@ import type {
   Member,
   Project,
   ProjectScope,
+  PublicRecap,
   RegisterInput,
   ScheduledTask,
   StreakSummary,
@@ -96,6 +99,7 @@ export interface TaskCanvasApi {
     createMany(items: CreateClassScheduleInput[]): Promise<ClassSchedule[]>;
     update(id: string, input: UpdateClassScheduleInput): Promise<ClassSchedule>;
     remove(id: string): Promise<void>;
+    removeAll(): Promise<void>;
   };
   attendance: {
     list(range?: { from?: string; to?: string }): Promise<AttendanceRecord[]>;
@@ -103,5 +107,7 @@ export interface TaskCanvasApi {
     update(id: string, input: UpdateAttendanceInput): Promise<AttendanceRecord>;
     remove(id: string): Promise<void>;
     summary(): Promise<AttendanceSummary>;
+    share(input: CreateAttendanceShareInput): Promise<AttendanceShare>;
+    recap(token: string): Promise<PublicRecap>;
   };
 }

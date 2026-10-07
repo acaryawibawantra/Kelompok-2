@@ -3,9 +3,11 @@ import type { TaskCanvasApi, TaskMutationResult, ProjectDetail } from "../types"
 import type {
   ArchivedTask,
   AttendanceRecord,
+  AttendanceShare,
   AttendanceSummary,
   ClassSchedule,
   CreateAttendanceInput,
+  CreateAttendanceShareInput,
   CreateClassScheduleInput,
   CreateInviteInput,
   CreateProjectInput,
@@ -16,6 +18,7 @@ import type {
   LoginInput,
   Member,
   Project,
+  PublicRecap,
   RegisterInput,
   ScheduledTask,
   StreakSummary,
@@ -175,6 +178,8 @@ export const httpApi: TaskCanvasApi = {
       request<ClassSchedule>(`/schedules/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
     remove: (id) =>
       request<{ ok: true }>(`/schedules/${id}`, { method: "DELETE" }).then(() => undefined),
+    removeAll: () =>
+      request<{ ok: true }>("/schedules", { method: "DELETE" }).then(() => undefined),
   },
   attendance: {
     list: (range) => {
@@ -194,5 +199,8 @@ export const httpApi: TaskCanvasApi = {
     remove: (id) =>
       request<{ ok: true }>(`/attendance/${id}`, { method: "DELETE" }).then(() => undefined),
     summary: () => request<AttendanceSummary>("/attendance/summary"),
+    share: (input: CreateAttendanceShareInput) =>
+      request<AttendanceShare>("/attendance/share", body(input)),
+    recap: (token: string) => request<PublicRecap>(`/public/recap/${token}`),
   },
 };

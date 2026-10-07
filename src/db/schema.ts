@@ -188,3 +188,18 @@ export const attendanceRecords = sqliteTable(
     uniqueIndex("uniq_attendance_session").on(table.userId, table.scheduleId, table.date),
   ],
 );
+
+// Token link rekap mingguan yang bisa dibagikan publik (per user + per minggu).
+export const attendanceShares = sqliteTable(
+  "attendance_shares",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekStart: text("week_start").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [uniqueIndex("uniq_share_user_week").on(table.userId, table.weekStart)],
+);

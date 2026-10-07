@@ -121,3 +121,8 @@ export async function deleteSchedule(user: User, id: string): Promise<void> {
   await findSchedule(user.id, id);
   await db.delete(classSchedules).where(eq(classSchedules.id, id));
 }
+
+export async function deleteAllSchedules(user: User): Promise<void> {
+  const db = getDb();
+  await db.delete(classSchedules).where(eq(classSchedules.userId, user.id));
+}

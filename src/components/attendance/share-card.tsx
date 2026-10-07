@@ -80,7 +80,7 @@ function buildShareText(summary: AttendanceSummary, name: string): string {
     `Streak ${summary.currentStreak} hari`,
     `Rata-rata kehadiran ${summary.attendanceRate}%`,
     best ? `Mata kuliah terbaik: ${best}` : "",
-    "#TaskCanvas",
+    "#SemangatBrow",
   ]
     .filter(Boolean)
     .join("\n");
@@ -240,7 +240,7 @@ function drawChartLayout(
     setSpacing(context, "8px");
     context.fillStyle = theme.text;
     context.font = `800 46px ${FONT}`;
-    context.fillText("TASKCANVAS", width - pad, 1870);
+    context.fillText("SEMANGAT BROW", width - pad, 1870);
     setSpacing(context, "0px");
     return;
   }
@@ -281,7 +281,7 @@ function drawChartLayout(
   setSpacing(context, "8px");
   context.fillStyle = theme.text;
   context.font = `800 40px ${FONT}`;
-  context.fillText("TASKCANVAS", width - pad, 1010);
+  context.fillText("SEMANGAT BROW", width - pad, 1010);
   setSpacing(context, "0px");
 
   drawChart(context, theme, summary.week.days, {
@@ -338,7 +338,7 @@ function drawStackLayout(
     setSpacing(context, "10px");
     context.fillStyle = theme.text;
     context.font = `800 54px ${FONT}`;
-    context.fillText("TASKCANVAS", centerX, 1872);
+    context.fillText("SEMANGAT BROW", centerX, 1872);
     setSpacing(context, "0px");
     return;
   }
@@ -362,7 +362,7 @@ function drawStackLayout(
   setSpacing(context, "10px");
   context.fillStyle = theme.text;
   context.font = `800 54px ${FONT}`;
-  context.fillText("TASKCANVAS", centerX, 1000);
+  context.fillText("SEMANGAT BROW", centerX, 1000);
   setSpacing(context, "0px");
 }
 

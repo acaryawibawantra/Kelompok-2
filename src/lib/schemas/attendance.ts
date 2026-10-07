@@ -96,3 +96,26 @@ export const attendanceSummarySchema = z.object({
 export type AttendanceSummary = z.infer<typeof attendanceSummarySchema>;
 export type AttendanceWeekDay = z.infer<typeof attendanceWeekDaySchema>;
 export type AttendanceShareCourse = z.infer<typeof attendanceShareCardCourseSchema>;
+
+// Permintaan membuat link rekap untuk satu minggu (Senin).
+export const createAttendanceShareSchema = z.object({
+  weekStart: dueDateSchema,
+});
+export type CreateAttendanceShareInput = z.infer<typeof createAttendanceShareSchema>;
+
+// Hasil pembuatan link: token + path relatif (mis. /r/<token>).
+export const attendanceShareSchema = z.object({
+  token: z.string(),
+  path: z.string(),
+});
+export type AttendanceShare = z.infer<typeof attendanceShareSchema>;
+
+// Rekap publik yang bisa dilihat siapa saja lewat link.
+export const publicRecapSchema = z.object({
+  name: z.string(),
+  avatarColor: z.string(),
+  weekStart: dueDateSchema,
+  summary: attendanceSummarySchema,
+  records: z.array(attendanceRecordSchema),
+});
+export type PublicRecap = z.infer<typeof publicRecapSchema>;
