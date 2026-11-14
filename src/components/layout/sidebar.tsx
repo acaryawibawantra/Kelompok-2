@@ -21,6 +21,7 @@ import { Logo } from "./logo";
 import { UserMenu } from "./user-menu";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDialog } from "@/components/ui/use-dialog";
 import { useInvites, useProjects } from "@/lib/queries";
 import { useUiStore } from "@/lib/stores/ui-store";
 import { cn } from "@/lib/utils";
@@ -99,10 +100,10 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
               onClick={() => setMobileNavOpen(false)}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                "relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                 collapsed && "justify-center px-0",
                 active
-                  ? "bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200"
+                  ? "bg-brand-50 font-semibold text-brand-700 before:absolute before:top-1/2 before:left-0 before:h-4 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-brand-600 dark:bg-brand-500/15 dark:text-brand-200 dark:before:bg-brand-400"
                   : "text-muted hover:bg-surface-2 hover:text-foreground",
               )}
             >
@@ -121,7 +122,7 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
       {!collapsed ? (
         <div className="mt-4 flex min-h-0 flex-1 flex-col">
           <div className="flex items-center justify-between px-2 pb-1">
-            <span className="text-muted inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
+            <span className="text-muted inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase">
               <FolderKanban className="size-3.5" aria-hidden />
               Projects
             </span>
@@ -234,19 +235,33 @@ export function Sidebar() {
         <SidebarContent collapsed={collapsed} />
       </aside>
 
-      {mobileNavOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            aria-label="Tutup menu"
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setMobileNavOpen(false)}
-          />
-          <div className="border-border bg-surface shadow-pop relative h-full w-72 max-w-[85vw] border-r">
-            <SidebarContent />
-          </div>
-        </div>
-      ) : null}
+      <MobileNav open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
     </>
+  );
+}
+
+function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const ref = useDialog(open, onClose);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <button
+        type="button"
+        aria-label="Tutup menu"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigasi utama"
+        className="border-border bg-surface shadow-pop relative h-full w-72 max-w-[85vw] border-r"
+      >
+        <SidebarContent />
+      </div>
+    </div>
   );
 }

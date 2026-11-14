@@ -19,7 +19,7 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
     >
       <div className="space-y-1">
         {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-600">
             {eyebrow}
           </p>
         ) : null}
