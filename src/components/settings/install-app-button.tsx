@@ -28,7 +28,7 @@ export function InstallAppButton() {
           disabled={!canInstall}
           onClick={() => {
             void install().then((accepted) => {
-              if (accepted) toast({ title: "TaskCanvas dipasang", tone: "success" });
+              if (accepted) toast({ title: "Semangat Brow dipasang", tone: "success" });
             });
           }}
         >
