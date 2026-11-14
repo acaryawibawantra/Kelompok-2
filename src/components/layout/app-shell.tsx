@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { MobileTabBar } from "./mobile-tab-bar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -16,11 +17,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Header />
         <main
           id="main-content"
-          className="canvas-grid min-h-[calc(100dvh-3.5rem)] flex-1"
+          className="canvas-grid min-h-[calc(100dvh-3.5rem)] flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0"
         >
           {children}
         </main>
       </div>
+      <MobileTabBar />
     </div>
   );
 }
