@@ -5,20 +5,22 @@ export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "dan
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 select-none whitespace-nowrap";
+  "inline-flex items-center justify-center gap-2 rounded-[10px] font-medium transition-colors duration-150 select-none whitespace-nowrap " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring " +
+  "disabled:cursor-not-allowed disabled:opacity-50";
 
 export const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-brand-600 text-white shadow-soft hover:bg-brand-700 active:bg-brand-800",
-  secondary: "bg-surface-2 text-foreground hover:bg-border",
-  outline: "border border-border bg-surface text-foreground hover:bg-surface-2",
+  primary: "bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800",
+  secondary: "border border-border bg-surface text-foreground hover:bg-surface-2",
+  outline: "border border-border-strong bg-transparent text-foreground hover:bg-surface-2",
   ghost: "text-foreground hover:bg-surface-2",
-  danger: "bg-danger text-white hover:opacity-90",
+  danger: "bg-danger text-white hover:brightness-95 active:brightness-90",
 };
 
 export const buttonSizes: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
+  sm: "h-8 px-3 text-[13px]",
+  md: "h-9 px-3.5 text-sm",
+  lg: "h-10 px-4 text-sm",
   icon: "size-9",
 };
 
@@ -44,13 +46,17 @@ export function Button({
   className,
   disabled,
   children,
+  onClick,
   ...props
 }: ButtonProps) {
+  const inactive = Boolean(disabled || loading);
   return (
     <button
       className={buttonClass(variant, size, className)}
-      disabled={disabled || loading}
+      disabled={inactive || undefined}
+      aria-disabled={inactive || undefined}
       aria-busy={loading || undefined}
+      onClick={loading ? undefined : onClick}
       {...props}
     >
       {loading ? (
