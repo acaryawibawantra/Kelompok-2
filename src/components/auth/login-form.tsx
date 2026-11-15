@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { useLogin, useMe } from "@/lib/queries";
 import { loginSchema } from "@/lib/schemas";
-import { isApiError } from "@/lib/api";
+import { apiMode, isApiError } from "@/lib/api";
 import { zodFieldErrors } from "@/lib/forms";
 import { safeRedirect } from "@/lib/utils";
 
@@ -110,13 +110,15 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <div className="rounded-xl border border-dashed border-border bg-surface/70 p-3 text-xs text-muted">
-        <p className="font-medium text-foreground">Akun demo</p>
-        <p>
-          Email <span className="font-mono text-foreground">demo@taskcanvas.app</span> · password
-          bebas, minimal 8 karakter.
-        </p>
-      </div>
+      {apiMode === "mock" ? (
+        <div className="rounded-xl border border-dashed border-border bg-surface/70 p-3 text-xs text-muted">
+          <p className="font-medium text-foreground">Mode mock (tanpa backend)</p>
+          <p>
+            Email <span className="font-mono text-foreground">demo@taskcanvas.app</span> · password
+            bebas, minimal 8 karakter.
+          </p>
+        </div>
+      ) : null}
 
       <p className="text-center text-sm text-muted">
         Belum punya akun?{" "}
