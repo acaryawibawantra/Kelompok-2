@@ -59,7 +59,7 @@ function NewSubjectInline({ projectId }: { projectId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-12 w-[280px] shrink-0 snap-start items-center justify-center gap-2 rounded-card border border-dashed border-border bg-surface/40 text-sm font-medium text-muted transition-colors hover:border-brand-400 hover:text-brand-600"
+        className="flex h-12 w-[280px] shrink-0 snap-start items-center justify-center gap-2 rounded-card border border-dashed border-border bg-surface/40 text-sm font-medium text-muted transition-colors hover:border-brand-400 hover:text-brand-ink"
       >
         <Plus className="size-4" aria-hidden />
         New Subject

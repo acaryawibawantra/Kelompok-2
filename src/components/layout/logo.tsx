@@ -21,7 +21,7 @@ export function Logo({ collapsed = false, className }: { collapsed?: boolean; cl
       </span>
       {!collapsed ? (
         <span className="text-[15px] font-semibold tracking-[-0.02em] text-foreground">
-          Semangat <span className="text-brand-600">Brow</span>
+          Semangat <span className="text-brand-ink">Brow</span>
         </span>
       ) : null}
     </Link>

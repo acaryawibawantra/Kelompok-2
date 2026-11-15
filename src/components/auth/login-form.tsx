@@ -128,7 +128,7 @@ export function LoginForm() {
             event.preventDefault();
             router.push(`/register${window.location.search}`);
           }}
-          className="font-medium text-brand-600 hover:underline"
+          className="font-medium text-brand-ink hover:underline"
         >
           Daftar sekarang
         </Link>

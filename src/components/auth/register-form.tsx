@@ -137,7 +137,7 @@ export function RegisterForm() {
             event.preventDefault();
             router.push(`/login${window.location.search}`);
           }}
-          className="font-medium text-brand-600 hover:underline"
+          className="font-medium text-brand-ink hover:underline"
         >
           Masuk
         </Link>

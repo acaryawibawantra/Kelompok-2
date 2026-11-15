@@ -119,7 +119,7 @@ export function DayAgenda({ date, tasks, sessions, timezone, isLoading, isToday 
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-brand-600 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.12em] uppercase">
+          <p className="text-brand-ink inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.12em] uppercase">
             {isToday ? (
               <CalendarCheck2 className="size-3.5" aria-hidden />
             ) : (

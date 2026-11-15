@@ -41,7 +41,7 @@ export function ProjectHeader({
             {project.emoji ?? "🗂️"}
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink">
               Canvas
             </p>
             <h1 className="truncate font-title text-4xl leading-tight text-foreground">

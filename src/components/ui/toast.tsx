@@ -29,7 +29,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 const toneIcon = {
   success: <CheckCircle2 className="size-5 text-success" aria-hidden />,
   error: <AlertTriangle className="size-5 text-danger" aria-hidden />,
-  info: <Info className="size-5 text-brand-600" aria-hidden />,
+  info: <Info className="size-5 text-brand-ink" aria-hidden />,
 } satisfies Record<ToastTone, ReactNode>;
 
 export function ToastProvider({ children }: { children: ReactNode }) {

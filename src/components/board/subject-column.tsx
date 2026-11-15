@@ -309,7 +309,7 @@ export function SubjectColumn({
             <button
               type="button"
               onClick={() => setConfirmClear(true)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline"
             >
               <CheckCheck className="size-3.5" aria-hidden />
               Hapus yang Selesai

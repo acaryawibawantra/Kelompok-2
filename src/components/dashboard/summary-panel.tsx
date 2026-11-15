@@ -65,7 +65,7 @@ export function DashboardSummary() {
       <div className="rounded-card border border-border bg-surface p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Clock className="size-4 text-brand-600" aria-hidden />
+            <Clock className="size-4 text-brand-ink" aria-hidden />
             Jatuh tempo hari ini
           </h2>
           {due.data ? <span className="text-xs text-muted">{due.data.length} task</span> : null}

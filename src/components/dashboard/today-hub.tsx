@@ -131,7 +131,7 @@ export function TodayHub() {
           id="hari-ini-heading"
           className="text-foreground flex items-center gap-2 text-sm font-semibold"
         >
-          <CalendarClock className="text-brand-600 size-4" aria-hidden />
+          <CalendarClock className="text-brand-ink size-4" aria-hidden />
           Hari Ini
         </h2>
         <p className="text-muted text-xs">

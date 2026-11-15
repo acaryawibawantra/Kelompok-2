@@ -244,7 +244,7 @@ export default async function PublicRecapPage({ params }: Props) {
 
         <p className="mt-4 text-center text-xs text-muted">
           Dibagikan lewat{" "}
-          <Link href="/" className="font-medium text-brand-600 hover:underline">
+          <Link href="/" className="font-medium text-brand-ink hover:underline">
             Semangat Brow
           </Link>{" "}
           — catat presensi kuliahmu juga.
