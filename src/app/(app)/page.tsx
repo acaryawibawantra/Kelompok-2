@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { ProjectGrid } from "@/components/project/project-grid";
 import { DashboardSummary } from "@/components/dashboard/summary-panel";
+import { TodayHub } from "@/components/dashboard/today-hub";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { useProjects } from "@/lib/queries";
@@ -47,6 +48,8 @@ export default function MySpacePage() {
           </Button>
         }
       />
+
+      <TodayHub />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section aria-label="Daftar project" className="min-w-0">
