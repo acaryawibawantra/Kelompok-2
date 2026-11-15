@@ -5,6 +5,7 @@ import { Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { useToast } from "@/components/ui/toast";
+import { computeAttendanceBadges } from "@/lib/attendance-badges";
 import { formatDueDate } from "@/lib/format";
 import type { AttendanceSummary, AttendanceWeekDay } from "@/types";
 
@@ -80,6 +81,9 @@ function buildShareText(summary: AttendanceSummary, name: string): string {
     `Streak ${summary.currentStreak} hari`,
     `Rata-rata kehadiran ${summary.attendanceRate}%`,
     best ? `Mata kuliah terbaik: ${best}` : "",
+    ...(computeAttendanceBadges(summary)
+      .slice(0, 3)
+      .map((badge) => `Lencana: ${badge.label}`)),
     "#SemangatBrow",
   ]
     .filter(Boolean)
@@ -121,6 +125,66 @@ function roundRect(
     context.arcTo(x, y, x + width, y, r);
     context.closePath();
   }
+}
+
+function drawRateRing(
+  context: CanvasRenderingContext2D,
+  theme: Theme,
+  rate: number,
+  centerX: number,
+  centerY: number,
+  radius: number,
+): void {
+  const safe = Math.min(100, Math.max(0, rate));
+  context.lineWidth = Math.round(radius * 0.16);
+  context.lineCap = "round";
+  context.strokeStyle = theme.track;
+  context.beginPath();
+  context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  context.stroke();
+  context.strokeStyle = theme.accent;
+  context.beginPath();
+  context.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * safe) / 100);
+  context.stroke();
+  context.lineCap = "butt";
+
+  context.fillStyle = theme.text;
+  context.textAlign = "center";
+  context.font = `800 ${Math.round(radius * 0.46)}px ${FONT}`;
+  context.fillText(`${safe}%`, centerX, centerY + radius * 0.16);
+  context.fillStyle = theme.subtext;
+  context.font = `600 ${Math.round(radius * 0.17)}px ${FONT}`;
+  context.fillText("RATA-RATA", centerX, centerY + radius * 0.58);
+}
+
+/** Satu baris pil lencana (maks 3), dikembalikan setinggi satu pil. */
+function drawBadges(
+  context: CanvasRenderingContext2D,
+  theme: Theme,
+  labels: string[],
+  region: { x?: number; centerX?: number; y: number; height: number; font: number; maxWidth: number },
+): void {
+  const items = labels.slice(0, 3);
+  if (items.length === 0) return;
+  const font = `600 ${Math.round(region.font)}px ${FONT}`;
+  context.font = font;
+  context.textAlign = "left";
+  const gap = Math.round(region.height * 0.32);
+  const widths = items.map((label) => context.measureText(label).width + region.height * 0.86);
+  const total = widths.reduce((sum, width) => sum + width, 0) + gap * (items.length - 1);
+  const startX =
+    region.centerX !== undefined ? region.centerX - total / 2 : (region.x ?? 0);
+  if (total > region.maxWidth) return;
+
+  let cursor = startX;
+  items.forEach((label, index) => {
+    roundRect(context, cursor, region.y, widths[index], region.height, region.height / 2);
+    context.fillStyle = theme.track;
+    context.fill();
+    context.fillStyle = theme.text;
+    context.fillText(label, cursor + region.height * 0.43, region.y + region.height * 0.5 + region.font * 0.36);
+    cursor += widths[index] + gap;
+  });
 }
 
 function drawChart(
@@ -195,6 +259,7 @@ function drawChartLayout(
     `Total hadir ${summary.totalPresent}`,
     `Rata-rata ${summary.attendanceRate}%`,
   ];
+  const badgeLabels = computeAttendanceBadges(summary).map((badge) => badge.label);
 
   if (portrait) {
     context.textAlign = "left";
@@ -207,11 +272,21 @@ function drawChartLayout(
     context.font = `500 42px ${FONT}`;
     context.fillText(range, pad, 236);
 
+    drawRateRing(context, theme, summary.attendanceRate, width - pad - 96, 200, 88);
+
     drawChart(context, theme, summary.week.days, {
       x: pad,
       y: 360,
       width: width - pad * 2,
       height: 760,
+    });
+
+    drawBadges(context, theme, badgeLabels, {
+      x: pad,
+      y: 1204,
+      height: 52,
+      font: 28,
+      maxWidth: width - pad * 2,
     });
 
     context.textAlign = "left";
@@ -273,6 +348,16 @@ function drawChartLayout(
   context.fillText(secondary.join("   ·   "), pad, 790);
   if (bestCourse) context.fillText(`Terbaik: ${bestCourse}`, pad, 848);
 
+  drawRateRing(context, theme, summary.attendanceRate, width - pad - 96, 300, 80);
+
+  drawBadges(context, theme, badgeLabels, {
+    x: pad,
+    y: 896,
+    height: 44,
+    font: 26,
+    maxWidth: 900 - pad - 24,
+  });
+
   context.textAlign = "left";
   context.fillStyle = theme.subtext;
   context.font = `500 36px ${FONT}`;
@@ -287,7 +372,7 @@ function drawChartLayout(
   drawChart(context, theme, summary.week.days, {
     x: 900,
     y: 170,
-    width: width - 900 - pad,
+    width: width - 900 - pad - 210,
     height: height - 340,
   });
 }
@@ -340,6 +425,14 @@ function drawStackLayout(
     context.font = `800 54px ${FONT}`;
     context.fillText("SEMANGAT BROW", centerX, 1872);
     setSpacing(context, "0px");
+
+    drawBadges(context, theme, computeAttendanceBadges(summary).map((badge) => badge.label), {
+      centerX,
+      y: 1652,
+      height: 52,
+      font: 28,
+      maxWidth: width - pad * 2,
+    });
     return;
   }
 
@@ -364,6 +457,14 @@ function drawStackLayout(
   context.font = `800 54px ${FONT}`;
   context.fillText("SEMANGAT BROW", centerX, 1000);
   setSpacing(context, "0px");
+
+  drawBadges(context, theme, computeAttendanceBadges(summary).map((badge) => badge.label), {
+    centerX,
+    y: 740,
+    height: 44,
+    font: 26,
+    maxWidth: width - pad * 2,
+  });
 }
 
 /**

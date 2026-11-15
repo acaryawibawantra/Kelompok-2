@@ -85,7 +85,7 @@ export function AttendanceView() {
         </div>
       ) : (
         <div className="mt-6 space-y-5">
-          {summary ? <AttendanceDashboard summary={summary} /> : null}
+          {summary ? <AttendanceDashboard summary={summary} records={records} /> : null}
           {summary ? <ShareCard summary={summary} name={name} /> : null}
 
           <section className="rounded-card border border-border bg-surface p-4 shadow-soft sm:p-5">

@@ -6,16 +6,20 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import {
   Archive,
+  CalendarCheck2,
   CalendarDays,
   Flame,
   Folder,
+  GraduationCap,
   LayoutGrid,
   Mail,
+  Moon,
   Plus,
   Search,
   Settings,
 } from "lucide-react";
 import { useUiStore } from "@/lib/stores/ui-store";
+import { useSettingsStore } from "@/lib/stores/settings-store";
 import { useProjects } from "@/lib/queries";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
@@ -46,6 +50,22 @@ function buildCommands(projects: Project[], router: ReturnType<typeof useRouter>
       hint: "Navigasi",
       icon: <LayoutGrid className="size-4" aria-hidden />,
       run: () => router.push("/"),
+    },
+    {
+      id: "presensi",
+      label: "Catat presensi",
+      hint: "Navigasi",
+      keywords: "absen kehadiran presensi hadir",
+      icon: <CalendarCheck2 className="size-4" aria-hidden />,
+      run: () => router.push("/presensi"),
+    },
+    {
+      id: "jadwal",
+      label: "Jadwal hari ini",
+      hint: "Navigasi",
+      keywords: "jadwal kuliah kelas hari ini",
+      icon: <GraduationCap className="size-4" aria-hidden />,
+      run: () => router.push("/jadwal"),
     },
     {
       id: "calendar",
@@ -82,6 +102,17 @@ function buildCommands(projects: Project[], router: ReturnType<typeof useRouter>
       hint: "Navigasi",
       icon: <Settings className="size-4" aria-hidden />,
       run: () => router.push("/settings"),
+    },
+    {
+      id: "toggle-theme",
+      label: "Tema terang/gelap",
+      hint: "Aksi",
+      keywords: "tema gelap terang dark light mode",
+      icon: <Moon className="size-4" aria-hidden />,
+      run: () => {
+        const { theme, setTheme } = useSettingsStore.getState();
+        setTheme(theme === "dark" ? "light" : "dark");
+      },
     },
   ];
   const projectCommands: Command[] = projects.map((project) => ({
