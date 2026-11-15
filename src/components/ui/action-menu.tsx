@@ -62,7 +62,7 @@ export function ActionMenu({
         aria-label={label}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "grid size-8 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground",
+          "grid size-9 place-items-center rounded-[10px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           triggerClassName,
         )}
       >

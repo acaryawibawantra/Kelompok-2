@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { PageTransition } from "./page-transition";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -18,7 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           id="main-content"
           className="canvas-grid min-h-[calc(100dvh-3.5rem)] flex-1"
         >
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     </div>

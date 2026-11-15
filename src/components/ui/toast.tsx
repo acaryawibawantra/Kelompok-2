@@ -89,7 +89,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => dismiss(item.id)}
                 aria-label="Tutup notifikasi"
-                className="grid size-6 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-foreground"
+                className="grid size-8 place-items-center rounded-[10px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <X className="size-3.5" aria-hidden />
               </button>

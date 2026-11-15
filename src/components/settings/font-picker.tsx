@@ -8,7 +8,7 @@ import type { ThemeMode, TitleFont } from "@/types";
 const FONTS: Array<{ value: TitleFont; label: string; cssVar: string; sample: string }> = [
   {
     value: "modern",
-    label: "Modern (Poppins)",
+    label: "Modern (Jakarta)",
     cssVar: "var(--font-body)",
     sample: "My Space",
   },

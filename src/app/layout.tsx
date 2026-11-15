@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
-import { Caveat, Lora, Poppins } from "next/font/google";
+import { Caveat, Lora, Plus_Jakarta_Sans } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const poppins = Poppins({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-body",
   display: "swap",
 });
@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${poppins.variable} ${caveat.variable} ${lora.variable} h-full`}
+      className={`${jakarta.variable} ${caveat.variable} ${lora.variable} h-full`}
     >
       <head>
         <Script src="/theme-init.js" strategy="beforeInteractive" />

@@ -1,12 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, Search } from "lucide-react";
 import { StreakBadge } from "./streak-badge";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 import { useUiStore } from "@/lib/stores/ui-store";
+import { cn } from "@/lib/utils";
 
 const TITLES: Record<string, string> = {
   archive: "Archive",
@@ -31,9 +33,32 @@ export function Header() {
   const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
   const setCommandOpen = useUiStore((state) => state.setCommandOpen);
   const crumbs = breadcrumbFor(pathname);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    let raf = 0;
+    const measure = () => {
+      setScrolled(window.scrollY > 4);
+      raf = 0;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   return (
-    <header className="border-border bg-canvas/85 sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-3 backdrop-blur-md sm:px-5">
+    <header
+      className={cn(
+        "border-border sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-3 transition-colors sm:px-5",
+        scrolled ? "bg-canvas/85 backdrop-blur-md" : "bg-canvas",
+      )}
+    >
       <button
         type="button"
         onClick={() => setMobileNavOpen(true)}

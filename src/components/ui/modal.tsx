@@ -87,7 +87,7 @@ export function Modal({
                 type="button"
                 onClick={onClose}
                 aria-label="Tutup"
-                className="grid size-8 shrink-0 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+                className="grid size-9 shrink-0 place-items-center rounded-[10px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <X className="size-4" aria-hidden />
               </button>

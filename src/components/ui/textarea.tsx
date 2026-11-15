@@ -7,9 +7,10 @@ export function Textarea({ className, ...props }: TextareaProps) {
   return (
     <textarea
       className={cn(
-        "w-full resize-y rounded-xl border border-border bg-surface px-3 py-2 text-sm text-foreground",
-        "placeholder:text-muted/70",
-        "focus-visible:border-brand-400 disabled:cursor-not-allowed disabled:opacity-60",
+        "w-full resize-y rounded-[10px] border border-border bg-surface px-3 py-2 text-sm text-foreground",
+        "transition-colors placeholder:text-muted/70 hover:border-border-strong",
+        "focus-visible:border-brand-500 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-ring",
+        "disabled:cursor-not-allowed disabled:opacity-60",
         className,
       )}
       {...props}
