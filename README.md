@@ -116,3 +116,29 @@ sebelum migrasi/deploy remote. Aplikasi tidak memakai ISR/R2 cache (halaman dina
 ## PWA
 
 Manifest `public/manifest.webmanifest`, service worker `public/sw.js` (aktif pada build produksi).
+
+## Pembaruan terakhir (Nov 2026)
+
+- **Dashboard "Hari Ini"**: kelas berikutnya, status presensi hari ini, statistik mingguan ringkas.
+- **Presensi**: lencana capaian, rekap per mata kuliah (urutan paling berisiko dulu), ekspor CSV minggu ini,
+  dan **halaman rekap publik `/r/<token>`** untuk tautan bagikan (sebelumnya 404).
+- **Mobile**: bottom tab bar (Ruang/Jadwal/Presensi/Streak/Setelan) + safe-area padding.
+- **Desain**: UI font Plus Jakarta Sans, border lebih tegas, focus ring global, motion 150ms yang
+  menghormati `prefers-reduced-motion`, token `brand-ink` agar teks aksen lolos kontras AA di dark mode.
+- **Brand**: nama produk disatukan jadi *Semangat Brow* (panel auth, wordmark, toast).
+- **Command palette (⌘K)**: aksi "Catat presensi", "Jadwal hari ini", toggle tema.
+
+## Deploy (produksi)
+
+```bash
+pnpm install
+pnpm typecheck && pnpm test && pnpm lint   # wajib hijau sebelum deploy
+pnpm deploy                                # opennextjs-cloudflare build + deploy (butuh `wrangler login`)
+```
+
+> Catatan: build `next build` / OpenNext **tidak jalan di host ARM64 tanpa VA 48-bit** (workerd
+> tcmalloc crash). Jalankan deploy dari mesin x64 / CI, bukan dari SBC ARM.
+
+---
+
+Dibuat dan dirawat bersama **Hermes Agent** (Nous Research) — audit, perbaikan fitur, dan QA otomatis.
