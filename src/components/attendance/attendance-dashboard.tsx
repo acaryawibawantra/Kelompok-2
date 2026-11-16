@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Download, Flame, ShieldCheck, Sparkles, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Flame, ShieldCheck, Sparkles, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { computeAttendanceBadges, type AttendanceBadgeId } from "@/lib/attendance-badges";
@@ -34,9 +34,14 @@ function courseTone(rate: number): { bar: string; text: string; label: string } 
 export function AttendanceDashboard({
   summary,
   records = [],
+  isCurrentWeek = true,
+  onNavigate,
 }: {
   summary: AttendanceSummary;
   records?: AttendanceRecord[];
+  isCurrentWeek?: boolean;
+  /** -1 = minggu sebelumnya, 0 = kembali ke minggu berjalan. */
+  onNavigate?: (direction: -1 | 0) => void;
 }) {
   const week = summary.week;
   const bestCourse = week.courses.find((course) => course.scheduled > 0)?.course;
@@ -52,10 +57,18 @@ export function AttendanceDashboard({
 
   const badges = useMemo(() => computeAttendanceBadges(summary), [summary]);
 
-  // Rekap per mata kuliah dari catatan di memori, terburuk lebih dulu.
+  // Rekap per mata kuliah untuk minggu yang dilihat, terburuk lebih dulu.
+  const weekRecordCount = useMemo(
+    () =>
+      records.filter(
+        (record) => record.date >= week.start && record.date <= week.end,
+      ).length,
+    [records, week.start, week.end],
+  );
   const courseStats = useMemo(() => {
     const map = new Map<string, { course: string; attended: number; total: number }>();
     for (const record of records) {
+      if (record.date < week.start || record.date > week.end) continue;
       const entry = map.get(record.course) ?? { course: record.course, attended: 0, total: 0 };
       entry.total += 1;
       if (record.status === "present" || record.status === "late") entry.attended += 1;
@@ -64,7 +77,7 @@ export function AttendanceDashboard({
     return [...map.values()]
       .map((entry) => ({ ...entry, rate: Math.round((entry.attended / entry.total) * 100) }))
       .sort((a, b) => a.rate - b.rate || a.course.localeCompare(b.course));
-  }, [records]);
+  }, [records, week.start, week.end]);
 
   const bestDay = useMemo(() => {
     let best: { attended: number; weekday: number } | null = null;
@@ -92,21 +105,50 @@ export function AttendanceDashboard({
     <section className="rounded-card border-border bg-surface shadow-soft border p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-title text-foreground text-2xl">Rekap Minggu Ini</h2>
+          <h2 className="font-title text-foreground text-2xl">
+            {isCurrentWeek ? "Rekap Minggu Ini" : "Rekap Riwayat Minggu"}
+          </h2>
           <p className="text-muted mt-0.5 text-sm">
             {formatDueDate(week.start)} – {formatDueDate(week.end)}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={exportCsv}
-          disabled={records.length === 0}
-          aria-label="Ekspor presensi minggu ini ke CSV"
-        >
-          <Download className="size-4" aria-hidden />
-          Ekspor CSV
-        </Button>
+        <div className="flex items-center gap-1.5">
+          {onNavigate ? (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-11 sm:size-9"
+                aria-label="Lihat minggu sebelumnya"
+                onClick={() => onNavigate(-1)}
+              >
+                <ChevronLeft className="size-4" aria-hidden />
+              </Button>
+              {!isCurrentWeek ? (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-11 sm:size-9"
+                  aria-label="Kembali ke minggu berjalan"
+                  onClick={() => onNavigate(0)}
+                >
+                  <ChevronRight className="size-4" aria-hidden />
+                </Button>
+              ) : null}
+            </>
+          ) : null}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-11 sm:h-8"
+            onClick={exportCsv}
+            disabled={weekRecordCount === 0}
+            aria-label="Ekspor presensi minggu ini ke CSV"
+          >
+            <Download className="size-4" aria-hidden />
+            Ekspor CSV
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-1.5">

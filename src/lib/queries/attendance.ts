@@ -21,10 +21,10 @@ export function useAttendance(range?: { from?: string; to?: string }) {
   });
 }
 
-export function useAttendanceSummary() {
+export function useAttendanceSummary(weekStart?: string) {
   return useQuery({
-    queryKey: queryKeys.attendanceSummary,
-    queryFn: () => api.attendance.summary(),
+    queryKey: [...queryKeys.attendanceSummary, weekStart ?? null] as const,
+    queryFn: () => api.attendance.summary(weekStart),
     staleTime: 15_000,
   });
 }

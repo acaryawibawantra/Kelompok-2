@@ -21,6 +21,8 @@ export interface AttendanceSummaryInput {
   schedules: AttendanceScheduleLike[];
   timezone: string;
   now: Date;
+  /** Tanggal acuan (YYYY-MM-DD) untuk melihat minggu lain; default hari ini. */
+  weekStart?: string;
 }
 
 function toCalendarDate(day: string): Date {
@@ -47,6 +49,7 @@ export function computeAttendanceSummary({
   schedules,
   timezone,
   now,
+  weekStart: weekAnchorDate,
 }: AttendanceSummaryInput): AttendanceSummary {
   const today = localDay(now, timezone);
   const todayCal = toCalendarDate(today);
@@ -110,8 +113,12 @@ export function computeAttendanceSummary({
   const attendanceRate =
     rateDenominator > 0 ? Math.round((totalAttended / rateDenominator) * 100) : 0;
 
-  // Minggu ini (Senin–Minggu).
-  const weekStart = startOfWeek(todayCal, { weekStartsOn: 1 });
+  // Minggu berjalan (Minggu–Sabtu): hari Minggu memulai minggu baru, jadi
+  // rekap minggu ini mulai kosong dan tidak tercampur minggu sebelumnya.
+  const weekAnchor = weekAnchorDate
+    ? toCalendarDate(weekAnchorDate)
+    : todayCal;
+  const weekStart = startOfWeek(weekAnchor, { weekStartsOn: 0 });
   const weekStartKey = toDayString(weekStart);
   const weekEndKey = toDayString(addDays(weekStart, 6));
   const weekRecords = records.filter(
@@ -143,7 +150,9 @@ export function computeAttendanceSummary({
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = addDays(weekStart, index);
     const key = toDayString(date);
-    const weekday = date.getUTCDay();
+    // Hitung weekday dari kalender tanggal (bukan instan UTC-midnight yang
+    // bisa bergeser satu hari di zona waktu UTC+).
+    const weekday = new Date(`${key}T00:00:00Z`).getUTCDay();
     const attended = weekRecords.filter(
       (record) => record.date === key && isAttended(record.status),
     ).length;

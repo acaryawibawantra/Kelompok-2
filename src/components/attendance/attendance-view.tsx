@@ -17,6 +17,7 @@ import {
   useUpdateAttendance,
 } from "@/lib/queries";
 import { formatDateTime, formatFullDate } from "@/lib/format";
+import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { AttendanceRecord, AttendanceStatus } from "@/types";
 import { ATTENDANCE_STATUS_META, ATTENDANCE_STATUS_ORDER } from "./status";
@@ -29,7 +30,9 @@ const selectClass =
 export function AttendanceView() {
   const { data: user } = useMe();
   const name = user?.name ?? "Aku";
-  const summaryQuery = useAttendanceSummary();
+  // undefined = minggu berjalan (Minggu–Sabtu); string = minggu riwayat yang dilihat.
+  const [weekStart, setWeekStart] = useState<string | undefined>(undefined);
+  const summaryQuery = useAttendanceSummary(weekStart);
   const attendanceQuery = useAttendance();
   const updateAttendance = useUpdateAttendance();
   const deleteAttendance = useDeleteAttendance();
@@ -39,6 +42,18 @@ export function AttendanceView() {
   const [pendingDelete, setPendingDelete] = useState<AttendanceRecord | null>(null);
 
   const records = useMemo(() => attendanceQuery.data ?? [], [attendanceQuery.data]);
+
+  function navigateWeek(direction: -1 | 0) {
+    if (direction === 0) {
+      setWeekStart(undefined);
+      return;
+    }
+    const base = summaryQuery.data?.week.start;
+    if (!base) return;
+    setWeekStart(
+      format(addDays(parseISO(`${base}T00:00:00Z`), -7), "yyyy-MM-dd"),
+    );
+  }
   const grouped = useMemo(() => {
     const map = new Map<string, AttendanceRecord[]>();
     for (const record of records) {
@@ -85,7 +100,14 @@ export function AttendanceView() {
         </div>
       ) : (
         <div className="mt-6 space-y-5">
-          {summary ? <AttendanceDashboard summary={summary} records={records} /> : null}
+          {summary ? (
+            <AttendanceDashboard
+              summary={summary}
+              records={records}
+              isCurrentWeek={!weekStart}
+              onNavigate={navigateWeek}
+            />
+          ) : null}
           {summary ? <ShareCard summary={summary} name={name} /> : null}
 
           <section className="rounded-card border border-border bg-surface p-4 shadow-soft sm:p-5">

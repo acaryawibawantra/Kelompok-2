@@ -1025,7 +1025,7 @@ export const mockApi: TaskCanvasApi = {
       saveDb(db);
     },
 
-    async summary(): Promise<AttendanceSummary> {
+    async summary(weekStart?: string): Promise<AttendanceSummary> {
       await simulate();
       const db = getDb();
       const user = requireUser(db);
@@ -1038,6 +1038,7 @@ export const mockApi: TaskCanvasApi = {
           .map((item) => ({ weekday: item.weekday, course: item.course })),
         timezone: user.timezone,
         now: new Date(),
+        weekStart,
       });
     },
 

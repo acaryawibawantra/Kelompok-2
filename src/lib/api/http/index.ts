@@ -198,7 +198,10 @@ export const httpApi: TaskCanvasApi = {
       }),
     remove: (id) =>
       request<{ ok: true }>(`/attendance/${id}`, { method: "DELETE" }).then(() => undefined),
-    summary: () => request<AttendanceSummary>("/attendance/summary"),
+    summary: (weekStart?: string) =>
+      request<AttendanceSummary>(
+        `/attendance/summary${weekStart ? `?week=${weekStart}` : ""}`,
+      ),
     share: (input: CreateAttendanceShareInput) =>
       request<AttendanceShare>("/attendance/share", body(input)),
     recap: (token: string) => request<PublicRecap>(`/public/recap/${token}`),

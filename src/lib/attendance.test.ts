@@ -35,7 +35,7 @@ describe("computeAttendanceSummary", () => {
     expect(result.lastAttendedDate).toBe("2026-10-05");
   });
 
-  it("meringkas minggu berjalan Senin–Minggu", () => {
+  it("meringkas minggu berjalan Minggu–Sabtu", () => {
     const result = computeAttendanceSummary({
       now: NOW,
       timezone: TZ,
@@ -46,16 +46,48 @@ describe("computeAttendanceSummary", () => {
       records: [record("2026-10-05", "late", "Algoritma")],
     });
 
-    expect(result.week.start).toBe("2026-10-05");
-    expect(result.week.end).toBe("2026-10-11");
+    expect(result.week.start).toBe("2026-10-04");
+    expect(result.week.end).toBe("2026-10-10");
     expect(result.week.attended).toBe(1);
     expect(result.week.scheduled).toBe(2);
     expect(result.week.rate).toBe(50);
     expect(result.week.days).toHaveLength(7);
+    expect(result.week.days[0].weekday).toBe(0);
     expect(result.week.courses).toEqual([
       { course: "Algoritma", attended: 1, scheduled: 1 },
       { course: "Basis Data", attended: 0, scheduled: 1 },
     ]);
+  });
+
+  it("hari Minggu memulai minggu baru, presensi tidak tercampur minggu sebelumnya", () => {
+    // NOW adalah Rabu; minggu berjalan = 2026-10-04 (Minggu) s.d. 2026-10-10 (Sabtu).
+    const result = computeAttendanceSummary({
+      now: NOW,
+      timezone: TZ,
+      schedules: [{ weekday: 1, course: "Algoritma" }],
+      records: [record("2026-10-03", "present", "Algoritma")],
+    });
+
+    expect(result.week.start).toBe("2026-10-04");
+    expect(result.week.attended).toBe(0);
+  });
+
+  it("weekStart acuan melihat minggu lain", () => {
+    // Acuan 2026-09-30 (Rabu) → minggu 2026-09-27 s.d. 2026-10-03.
+    const result = computeAttendanceSummary({
+      now: NOW,
+      timezone: TZ,
+      weekStart: "2026-09-30",
+      schedules: [{ weekday: 1, course: "Algoritma" }],
+      records: [
+        record("2026-09-28", "present", "Algoritma"),
+        record("2026-10-05", "late", "Algoritma"),
+      ],
+    });
+
+    expect(result.week.start).toBe("2026-09-27");
+    expect(result.week.end).toBe("2026-10-03");
+    expect(result.week.attended).toBe(1);
   });
 
   it("hari kelas yang terlewat memutus streak", () => {

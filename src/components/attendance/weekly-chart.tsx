@@ -3,8 +3,9 @@
 import { cn } from "@/lib/utils";
 import type { AttendanceWeekDay } from "@/types";
 
-// Senin–Minggu, mengikuti urutan minggu pada computeAttendanceSummary.
-const DAY_INITIAL = ["S", "S", "R", "K", "J", "S", "M"] as const;
+// Minggu–Sabtu: indeks = hasil getUTCDay(), jadi label tidak bisa bergeser
+// kalau urutan minggu berubah.
+const DAY_INITIAL = ["M", "S", "S", "R", "K", "J", "S"] as const;
 
 /**
  * Grafik batang kehadiran mingguan (DOM). Tinggi batang relatif terhadap
@@ -15,7 +16,7 @@ export function WeeklyChart({ days, className }: { days: AttendanceWeekDay[]; cl
 
   return (
     <div className={cn("flex items-end gap-2", className)}>
-      {days.map((day, index) => {
+      {days.map((day) => {
         const trackPercent = day.scheduled > 0 ? Math.round((day.scheduled / max) * 100) : 0;
         const fillPercent =
           day.scheduled > 0 ? Math.round((day.attended / day.scheduled) * 100) : 0;
@@ -44,7 +45,9 @@ export function WeeklyChart({ days, className }: { days: AttendanceWeekDay[]; cl
                 ) : null}
               </div>
             </div>
-            <span className="text-muted text-[11px] font-medium">{DAY_INITIAL[index]}</span>
+            <span className="text-muted text-[11px] font-medium" title={day.date}>
+              {DAY_INITIAL[day.weekday]}
+            </span>
           </div>
         );
       })}

@@ -168,7 +168,10 @@ export async function deleteAttendance(user: User, id: string): Promise<void> {
   await db.delete(attendanceRecords).where(eq(attendanceRecords.id, id));
 }
 
-export async function getAttendanceSummary(user: User): Promise<AttendanceSummary> {
+export async function getAttendanceSummary(
+  user: User,
+  weekStart?: string,
+): Promise<AttendanceSummary> {
   const db = getDb();
   const [records, schedules] = await Promise.all([
     db.select().from(attendanceRecords).where(eq(attendanceRecords.userId, user.id)),
@@ -187,6 +190,7 @@ export async function getAttendanceSummary(user: User): Promise<AttendanceSummar
     schedules,
     timezone: user.timezone,
     now: new Date(),
+    weekStart,
   });
 }
 

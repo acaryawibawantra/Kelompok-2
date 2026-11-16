@@ -106,7 +106,7 @@ export interface TaskCanvasApi {
     checkIn(input: CreateAttendanceInput): Promise<AttendanceRecord>;
     update(id: string, input: UpdateAttendanceInput): Promise<AttendanceRecord>;
     remove(id: string): Promise<void>;
-    summary(): Promise<AttendanceSummary>;
+    summary(weekStart?: string): Promise<AttendanceSummary>;
     share(input: CreateAttendanceShareInput): Promise<AttendanceShare>;
     recap(token: string): Promise<PublicRecap>;
   };
